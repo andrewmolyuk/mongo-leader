@@ -1,31 +1,25 @@
 language: node_js
-
 node_js:
 - node
-
 branches:
   except:
-  - /^v?\d+\.\d+\.\d+$/
-
+  - "/^v?\\d+\\.\\d+\\.\\d+$/"
 script:
 - git config --global user.email "builds@travis-ci.com"
 - git config --global user.name "Travis CI"
 - export GIT_TAG=0.0.$TRAVIS_BUILD_NUMBER
 - npm version $GIT_TAG --force
 - npm run eslint
-
 before_deploy:
 - git tag $GIT_TAG -a -m $GIT_TAG
 - git push -q https://$GITHUB_TOKEN@github.com/andrewmolyuk/mongo-leader --tags
-
 deploy:
   skip_cleanup: true
   provider: npm
   email: andrew.molyuk@gmail.com
-  api_key: $NPM_APIKEY
+  api_key: "$NPM_APIKEY"
   tag: next
-
 env:
   global:
-  - secure: Vbn9CkM0bpz4A9/yhZsgwPTa36tqe0BSflHOAJqn1mOCW6IweWaJoRKke0t6E3GYo9Ew9FG67IRxJYVb43ePzODzXao+dQNx4JGEbqFRoZMBnzUun1Zf/2C2hJdKOYanOxeHSZksxYo50wmhApUbjVbxaz/p+v4G8kQVXP0Iu2jkV6cVyMjJTEHVdxo0m0/E76xTfvxf0ylOfQNyB06sgEFXjjO6yh3CrO5z0CfWZ7KxVj4qbroW8GSyljZoRklI1wIK0m8JFXhvYxQgbfD3GDku+hR7WVRnEKTfCz/EBCvcaLvHkxONyW1FDpe51aI2FyewviIXYuYY03uXp1TQBd9QkwDZ6dHDhRXkiM/9tGSPMedEwfAAJDvaygHVEhpnl/wqejpyG3ZcwTsVeNDGwwMAm4sEx676UfNnsDh2slwDcSeXtpr1VOFMn+iUeSjKeDiNiMpovaO+UDKT46gANDeODhVluHjvP74dHuifG54oOE757v2WUBaTAZfZAtEY96M2qAOcgkQ+5Dw3Gq5pMsHLiz2yoo9bYAtGVyB96nS/CpKA2wfBjboNZUsHWhtddZuvj0iGxGKNgH33FLzzLQHMMzmnsmcVEAz5ajByNw3Bw+RO96aTzMDTOoZvPUgH9TR1m8eZKVuSxsWvjdPegYp/jmItEMfb+cD/uv+q6IM=
-  - secure: itKCRIDgavnzv6zoQ8g+AcJNAtENfytNyLgMoDW2aQnAwdSwQJUPyAO1hHHFsvAOaFDHnnL92GRvQccYcVZan7l5uXftP+ToXQYxlk8osTaKHa7S4kgvbLFd6U5sIxFnDpI/mCUQPoI3Z/NrSBwVWOneAatcyxS0UcVNNXrB+cJ+SrQkWYiVPwtbNs7y6aPfgzQNJGaes7pX9wUENV4AGk9+AJ9Oeqn4+1rmmeXLORf76E9cdVxBuxs5bxDb18zykUi+MRs2m9EHiA1fcYi/RPMWA81a5UXMEetCZfl0+phn1Tu4ek3Syc01IQIBoqyEGsioA12gtHGGNaM7gwzQsPLSoJ1WIhkf4xa/pDK5JZeMtPEZ9U6g68PFXnCiO5/2SkTYc8noUYdShiacrn8j6TmcxcinxS5ZagZA4AgyzkLhOl/15Mgo6n4QgIFrVm2TSBCo6aTKgqXrQlWAJwIQ6/SsATYFL9pWDCuq2PzcR77icXvon8F5b26coRoNWeEKeIbfEfFnN48UI0MlqTXjKsZNZgiIO+ImG7JKrcMmBU7S0T28vsKBfvND/8EC1d7DwKeeEZKUFiZnoBbHFBjK0z9AGaRdJFRsGB4JHKtnXH0yK58anZ3USh4aUDS6GBdWRq6oO69Gi3yls50u1t3OTlAfdxebQbOA9JbjdS5tPoo=
+  - secure: G71oMMYRXJ2nSw13Tu+Cy0DcBlcamlL/5gZqf35TkpWJQYIdfC8mpVF8W3Ww+3FTEk56di8guWdEDmX9LNXcmZ7gI1qpemXkd/+CA01P6SayG+Z6prW7MyW/jX6y7ad7Y60U/9hA9ZEWMuM1vdiUz8AL9a5dV6KHpN1CJeqzpAwdxbaxRfcCYN8+BTBPAgFXRJ4j5F3IalhEbL8WLYBoib/44GmfU2S5VZ7ofxIDWSmFRjf+SqHxWKj7k1xRLnbITv26DKE6jMgllxgX+pUBQA5wR5Ezam1PbZkW64btdK3Rvo1KKImYC1L0WTyPaKSDipZOX55i0XUDGoD+t72A1LbGfH998oRnjIVlEvUHEKHRXgobu0mWBhMsr1DSb/c6PBYBkcNVh1UTOPgyZCSl3IyYr6pZe735Jnx+Ylzs96PL/arlpvOyHO7/6C+sesfpcuxznDWZ93UtQKZFNBxX0whnPhAAMMm2b+IjD9z7wZda3lQ8Xj2vNu2kGdfVO57cvdWJL1U+jHlmXJ/0q+5iBR2cdT9bNDCllo1fVPjyT2UgjRvq0DwuxiztiwRjZMSG806x14Ryf8h8EkCHN4A8Q5XQm4HeuAPZE4dGL5ehXPubhibKsNKcmm81qgpRmPlaUBboHzAbjdDPicCAw4pqFWjHkN01yWi52hWzYWh7thQ=
+  - secure: A3HPSRHAi85yu8m8Z8RkovuDVQgxoAOjLJoOe6SFKWdctVXc0ScjNDiB7B0J9t+vyZLPtUP2uns/iRTQqicO3aupxNTFz0pp2bxkPOlSqdvZ6A6FeTjL7ouSlQIAY5xls3fr/h6k7w3gVmj01RDTiOvcHS8vqg8omTzUB31RV0NDQPJKDFGDDeiH4R5ela7Mikn3iKcMRfb5rfr9zXySNrumOG2amHdzUG78g2z2z9zMgPmMTj0F9wJY74RJO4anuS5c/uN12n67fRVAPUahRhieNmbDI5kHS+PgRuL0geNd1rLeF2Ri+ckAEirqkPkNjSDBFFbZwfQKXJWm+4z4FGpYJddiHHNiDCrW1ZlCf8J0UaMVfWvvBV2df4lvXaei3fSFHnCi3fETsMzwWS3x5GViqzV83VVDNUbAS4wnrSPOCLrEd7pml/oWsaioAV2Vm1nnmMObk5vHelbxpjbpMf5cLxOiDf2SDJGz7nKpb6HF41rCGU8nJxHlk6nIx8T76+7V+CH90GG8dhdoFpOHvg64ABz2RxEpS+uotvjXW3PYm35Sdm4nXCID+ve8r83IsM2VqAuBpfo6Bi94cn3HomSxEMHQbTDKFrQ8A+GdRix0Eg2UygPXiLl3tzpRXj/hx2XmCrGK7W+cwHflE8KEEmxW4ijzWh0BX1GRMDct5JQ=
