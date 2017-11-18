@@ -2,8 +2,8 @@ language: node_js
 node_js:
 - node
 branches:
-  except:
-  - "/^v?\\d+\\.\\d+\\.\\d+$/"
+  only:
+    - master
 script:
 - git config --global user.email "builds@travis-ci.com"
 - git config --global user.name "Travis CI"
@@ -11,14 +11,12 @@ script:
 - npm version $GIT_TAG --force
 - npm run eslint
 before_deploy:
-#- git tag $GIT_TAG -a -m $GIT_TAG
-- git push -q https://$GITHUB_TOKEN@github.com/andrewmolyuk/mongo-leader --tags
+- git tag $GIT_TAG -a -m $GIT_TAG
+- git push https://$GITHUB_TOKEN@github.com/andrewmolyuk/mongo-leader --follow-tags
 deploy:
-  skip_cleanup: true
   provider: npm
   email: andrew.molyuk@gmail.com
   api_key: "$NPM_APIKEY"
-  tag: next
 env:
   global:
   - secure: G71oMMYRXJ2nSw13Tu+Cy0DcBlcamlL/5gZqf35TkpWJQYIdfC8mpVF8W3Ww+3FTEk56di8guWdEDmX9LNXcmZ7gI1qpemXkd/+CA01P6SayG+Z6prW7MyW/jX6y7ad7Y60U/9hA9ZEWMuM1vdiUz8AL9a5dV6KHpN1CJeqzpAwdxbaxRfcCYN8+BTBPAgFXRJ4j5F3IalhEbL8WLYBoib/44GmfU2S5VZ7ofxIDWSmFRjf+SqHxWKj7k1xRLnbITv26DKE6jMgllxgX+pUBQA5wR5Ezam1PbZkW64btdK3Rvo1KKImYC1L0WTyPaKSDipZOX55i0XUDGoD+t72A1LbGfH998oRnjIVlEvUHEKHRXgobu0mWBhMsr1DSb/c6PBYBkcNVh1UTOPgyZCSl3IyYr6pZe735Jnx+Ylzs96PL/arlpvOyHO7/6C+sesfpcuxznDWZ93UtQKZFNBxX0whnPhAAMMm2b+IjD9z7wZda3lQ8Xj2vNu2kGdfVO57cvdWJL1U+jHlmXJ/0q+5iBR2cdT9bNDCllo1fVPjyT2UgjRvq0DwuxiztiwRjZMSG806x14Ryf8h8EkCHN4A8Q5XQm4HeuAPZE4dGL5ehXPubhibKsNKcmm81qgpRmPlaUBboHzAbjdDPicCAw4pqFWjHkN01yWi52hWzYWh7thQ=
