@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const { EventEmitter } = require('events');
 
 class Leader extends EventEmitter {
-  constructor(db, options) {
+  constructor (db, options) {
     super();
     options = options || {};
     this.id = crypto.randomBytes(32).toString('hex');
@@ -15,7 +15,7 @@ class Leader extends EventEmitter {
     this.initDatabase().then(() => this.elect());
   }
 
-  initDatabase() {
+  initDatabase () {
     return this.db.command({ ping: 1 })
       .then(() => this.db.executeDbAdminCommand({ setParameter: 1, ttlMonitorSleepSecs: 1 }))
       .then(() => this.db.dropCollection(this.key))
@@ -26,14 +26,14 @@ class Leader extends EventEmitter {
       .then((collection) => collection.createIndex({ createdAt: 1 }, { expireAfterSeconds: this.options.ttl / 1000 }));
   }
 
-  isLeader() {
+  isLeader () {
     return this.db.collection(this.key).findOne({ 'leader-id': this.id })
       .then(item => item !== null && item['leader-id'] === this.id);
   };
 
-  elect() {
+  elect () {
     this.db.collection(this.key)
-      .findOneAndUpdate({}, { "$setOnInsert": { 'leader-id': this.id, 'createdAt': new Date() } },
+      .findOneAndUpdate({}, { '$setOnInsert': { 'leader-id': this.id, 'createdAt': new Date() } },
         { upsert: true, new: false })
       .then(result => {
         if (result.lastErrorObject.updatedExisting) {
@@ -42,12 +42,12 @@ class Leader extends EventEmitter {
           this.emit('elected');
           setTimeout(() => this.renew(), this.options.ttl / 2);
         }
-      })
+      });
   }
 
-  renew() {
+  renew () {
     this.db.collection(this.key)
-      .findOneAndUpdate({ 'leader-id': this.id }, { "$set": { 'leader-id': this.id, 'createdAt': new Date() } },
+      .findOneAndUpdate({ 'leader-id': this.id }, { '$set': { 'leader-id': this.id, 'createdAt': new Date() } },
         { upsert: false, new: false })
       .then(result => {
         if (result.lastErrorObject.updatedExisting) {
@@ -56,7 +56,7 @@ class Leader extends EventEmitter {
           this.emit('revoked');
           setTimeout(() => this.elect(), this.options.wait);
         }
-      })
+      });
   }
 }
 
