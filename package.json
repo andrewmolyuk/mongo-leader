@@ -1,7 +1,7 @@
 {
   "name": "mongo-leader",
   "version": "0.0.1",
-  "description": "",
+  "description": "Leader election backed by Mongo",
   "main": "index.js",
   "scripts": {
     "eslint": "esw --ext .js index.js",
