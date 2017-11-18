@@ -6,7 +6,7 @@
   "scripts": {
     "eslint": "esw --ext .js index.js",
     "eslint-watch": "esw --watch --ext .js index.js",
-    "nodemon": "nodemon index.js"
+    "nodemon": "nodemon test.js"
   },
   "repository": {
     "type": "git",
@@ -28,5 +28,7 @@
     "eslint-watch": "^3.1.3",
     "nodemon": "^1.12.1"
   },
-  "dependencies": {}
+  "dependencies": {
+    "mongodb": "^2.2.33"
+  }
 }
