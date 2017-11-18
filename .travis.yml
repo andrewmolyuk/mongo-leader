@@ -10,9 +10,6 @@ script:
 - export GIT_TAG=0.0.$TRAVIS_BUILD_NUMBER
 - npm version $GIT_TAG --force
 - npm run eslint
-before_deploy:
-- git tag $GIT_TAG -a -m $GIT_TAG
-- git push -q https://$GITHUB_TOKEN@github.com/andrewmolyuk/mongo-leader --tags
 deploy:
   skip_cleanup: true
   provider: npm
