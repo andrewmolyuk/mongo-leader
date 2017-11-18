@@ -2,20 +2,20 @@ const crypto = require('crypto');
 const { EventEmitter } = require('events');
 
 class Leader extends EventEmitter {
-  constructor (db, options) {
+  constructor(db, options) {
     super();
     options = options || {};
     this.id = crypto.randomBytes(32).toString('hex');
     this.db = db;
     this.options = {};
-    this.options.ttl = options.ttl || 1000; // Lock time to live
-    this.options.wait = options.wait || 500; // Time between tries to be elected
+    this.options.ttl = Math.max(options.ttl || 0, 1000); // Lock time to live
+    this.options.wait = Math.max(options.wait || 0, 100); // Time between tries to be elected
     this.key = 'leader-' + crypto.createHash('sha1').update(options.key || 'default').digest('hex');
 
     this.initDatabase().then(() => this.elect());
   }
 
-  initDatabase () {
+  initDatabase() {
     return this.db.command({ ping: 1 })
       .then(() => this.db.executeDbAdminCommand({ setParameter: 1, ttlMonitorSleepSecs: 1 }))
       .then(() => this.db.dropCollection(this.key))
@@ -26,12 +26,12 @@ class Leader extends EventEmitter {
       .then((collection) => collection.createIndex({ createdAt: 1 }, { expireAfterSeconds: this.options.ttl / 1000 }));
   }
 
-  isLeader () {
+  isLeader() {
     return this.db.collection(this.key).findOne({ 'leader-id': this.id })
       .then(item => item !== null && item['leader-id'] === this.id);
   };
 
-  elect () {
+  elect() {
     this.db.collection(this.key)
       .findOneAndUpdate({}, { '$setOnInsert': { 'leader-id': this.id, 'createdAt': new Date() } },
         { upsert: true, new: false })
@@ -45,7 +45,7 @@ class Leader extends EventEmitter {
       });
   }
 
-  renew () {
+  renew() {
     this.db.collection(this.key)
       .findOneAndUpdate({ 'leader-id': this.id }, { '$set': { 'leader-id': this.id, 'createdAt': new Date() } },
         { upsert: false, new: false })
@@ -60,4 +60,4 @@ class Leader extends EventEmitter {
   }
 }
 
-module.exports = Leader;
+module.exports = { Leader };

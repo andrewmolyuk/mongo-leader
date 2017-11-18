@@ -1,4 +1,4 @@
-const Leader = require('./index');
+const { Leader} = require('./index');
 const { MongoClient } = require('mongodb');
 
 const url = 'mongodb://localhost:27017/test';
