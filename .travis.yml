@@ -12,7 +12,7 @@ script:
 - npm run eslint
 before_deploy:
 - git tag $GIT_TAG -a -m $GIT_TAG
-- git push https://$GITHUB_TOKEN@github.com/andrewmolyuk/mongo-leader --follow-tags
+- git push https://$GITHUB_TOKEN@github.com/andrewmolyuk/mongo-leader --tags
 deploy:
   provider: npm
   email: andrew.molyuk@gmail.com
