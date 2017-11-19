@@ -12,7 +12,7 @@ Class Leader extends the Node.js [EventEmmiter](https://nodejs.org/api/events.ht
 ```
 npm install mongo-leader
 ```
-## Examples
+## Example
 ```
 const { Leader } = require('mongo-leader');
 const { MongoClient } = require('mongodb');
@@ -20,9 +20,10 @@ const { MongoClient } = require('mongodb');
 const url = 'mongodb://localhost:27017/test';
 
 MongoClient.connect(url, function (err, db) {
-  const leader = new Leader(db, { ttl: 10, wait: 0 });
+  const leader = new Leader(db, { ttl: 5000, wait: 1000 });
   setInterval(() => {
-    leader.isLeader().then(leader => console.log(`Am I leader? : ${leader}`))
+    leader.isLeader()
+      .then(leader => console.log(`Am I leader? : ${leader}`))
   }, 100);
 });
 ```
@@ -34,11 +35,15 @@ Create a new Leader class
 
 `db` is a MongoClient object
 
-`options.ttl` Lock time to live in milliseconds. Will be automatically released after that time. Minimum value is `1000`. Default is `1000`.
+`options.ttl` Lock time to live in milliseconds.  
+Will be automatically released after that time.  
+Default and minimum value are 1000.  
 
-`options.wait` Time between tries getting elected in milliseconds. Minimum value is `100`. Default is `100`.
+`options.wait` Time between tries getting elected in milliseconds.  
+Default and minimum value are 100.  
 
-`options.key` Unique identifier for the group of instances trying to be elected as leader. Default is `'default'`
+`options.key` Unique identifier for the group of instances trying to be elected as leader.  
+Default value is 'default'
 
 ### isLeader()
 
@@ -49,9 +54,9 @@ Promise that resolved to `true` if the instance is a leader; otherwise, `false`.
 
 ### Events
 
-`elected` the instance become leader
+`elected` The event fired when the instance become a leader.
 
-`revoked` the instance revoked from it's leadership
+`revoked` The event fired when the instance revoked from it's leadership.
 
 ## License
 
