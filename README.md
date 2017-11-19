@@ -3,6 +3,7 @@
 [![Dependencies Status](https://david-dm.org/andrewmolyuk/mongo-leader/status.svg)](https://david-dm.org/andrewmolyuk/mongo-leader)
 [![devDependencies Status](https://david-dm.org/andrewmolyuk/mongo-leader/dev-status.svg)](https://david-dm.org/andrewmolyuk/mongo-leader?type=dev)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com)
+[![NPM](https://img.shields.io/npm/v/mongo-leader.svg?style=flat)](http://npm.im/mongo-leader)
 
 Leader election backed by Mongo, inspired by the [redis-leader](https://github.com/pierreinglebert/redis-leader).
 Class Leader extends the Node.js [EventEmmiter](https://nodejs.org/api/events.html#events_class_eventemitter) class.
