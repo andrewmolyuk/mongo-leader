@@ -14,7 +14,7 @@ Class Leader extends the Node.js [EventEmmiter](https://nodejs.org/api/events.ht
 npm install mongo-leader
 ```
 ## Example
-```
+```javascript
 const { Leader } = require('mongo-leader');
 const { MongoClient } = require('mongodb');
 
@@ -38,10 +38,10 @@ Create a new Leader class
 
 `options.ttl` Lock time to live in milliseconds.  
 Will be automatically released after that time.  
-Default and minimum value are 1000.  
+Default and minimum values are 1000.  
 
 `options.wait` Time between tries getting elected in milliseconds.  
-Default and minimum value are 100.  
+Default and minimum values are 100.  
 
 `options.key` Unique identifier for the group of instances trying to be elected as leader.  
 Default value is 'default'
