@@ -18,9 +18,10 @@ npm install mongo-leader
 const { Leader } = require('mongo-leader');
 const { MongoClient } = require('mongodb');
 
-const url = 'mongodb://localhost:27017/test';
+const url = 'mongodb://localhost:27017';
 
-MongoClient.connect(url, function (err, db) {
+MongoClient.connect(url, function (err, client) {
+  const db = client.db('test');
   const leader = new Leader(db, { ttl: 5000, wait: 1000 });
   setInterval(() => {
     leader.isLeader()
