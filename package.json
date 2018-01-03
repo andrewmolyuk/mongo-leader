@@ -16,7 +16,7 @@
     "mongo",
     "leader"
   ],
-  "author": "Anfdrew Molyuk",
+  "author": "Andrew Molyuk",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/andrewmolyuk/mongo-leader/issues"
