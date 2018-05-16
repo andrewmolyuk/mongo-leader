@@ -14,7 +14,6 @@ script:
 - export GIT_TAG=1.0.$TRAVIS_BUILD_NUMBER
 - npm version $GIT_TAG --force
 - npm run eslint
-- codecov
 after_script:
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
 before_deploy:
