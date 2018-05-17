@@ -5,6 +5,7 @@
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com)
 [![NPM](https://img.shields.io/npm/v/mongo-leader.svg?style=flat)](http://npm.im/mongo-leader)
 [![NPM downloads](http://img.shields.io/npm/dm/mongo-leader.svg?style=flat)](http://npm.im/mongo-leader)
+[![Maintainability](https://api.codeclimate.com/v1/badges/97bac8c15d4ca056efd3/maintainability)](https://codeclimate.com/github/andrewmolyuk/mongo-leader/maintainability)
 
 Leader election backed by MongoDB, inspired by the [redis-leader](https://github.com/pierreinglebert/redis-leader).
 Class Leader extends the Node.js [EventEmmiter](https://nodejs.org/api/events.html#events_class_eventemitter) class.
