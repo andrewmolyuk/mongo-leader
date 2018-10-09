@@ -4,8 +4,7 @@
   "description": "Leader election backed by Mongo",
   "main": "index.js",
   "scripts": {
-    "install": "yarn install",
-    "upgrade": "ncu --upgrade --upgradeAll && yarn upgrade",
+    "init": "yarn install && yarn upgrade",
     "eslint": "esw --ext .js *.js",
     "eslint-watch": "esw --watch --ext .js index.js",
     "nodemon": "nodemon test.js"
