@@ -23,7 +23,7 @@ before_deploy:
 deploy:
   provider: npm
   email: andrew.molyuk@gmail.com
-  api_key: "$NPM_APIKEY"
+  api_key: "$NPM_TOKEN"
 env:
   global:
   - secure: Fipae1S28vS5jAR+Oetch5+4D1SKmGtqsCjpwc3kHPi3GKuJ+zQ0Vm2i23doXZO19Ledc44J9fib3t5FefW2fXVvBr84WwhwePve/IBbTT3doZ5Dj1eM8JfSEbhawxcRGbgI73gxYfPDGBfs4L571cAceaubRXHbr5RcpLA5YRfUXqWVnMjhUOy8mP2PfNDkEf38tL8HiUNBUjX1er4+/X94/FGnO9a1C6VqAcrvo/fKiEAG9BfhcAE3FzH873BLt3JEMNlkKKYT7MxZHh9aeW9Lu0nFnFLcvF8CS9sIhEFLl8seDxLqwfvcf2Q1vJDkN2fIUwZ4sFuKbtWQFCXnX3sbxKmjg3UB4M/tTI2qwHBRKbGYOU36YZ2eT7relZVdRKSmBzs9gDOSruj/69u/YHTJpZ9SwzsQHFHlQ+7W7jkKiXELqVGM6wmND7jLZ3HPm0A/vN2xY9R+/VorUI3Fq8AjkD8EF/QPGunsWdAjCpXY69CNWWZhsjGeR4MytuajYGAgCnQzVz2J8ZBRL2NNEIyILFAkCj+VjkjjcjQr+h0Ckce1vOTomYH96uImEjss7pVCngL3NEipwt1yexeA1m5i2Ue6MjqQgc7sX3KEYsa6JXGgpgQ8UZIO5UsGa8c3zOzZtTY2Zn79x2zUPCA+dEgd9K80Fchw7VWTq+lcIWU=
