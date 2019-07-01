@@ -6,13 +6,14 @@
 [![NPM](https://img.shields.io/npm/v/mongo-leader.svg?style=flat)](http://npm.im/mongo-leader)
 [![NPM downloads](http://img.shields.io/npm/dm/mongo-leader.svg?style=flat)](http://npm.im/mongo-leader)
 [![Maintainability](https://api.codeclimate.com/v1/badges/97bac8c15d4ca056efd3/maintainability)](https://codeclimate.com/github/andrewmolyuk/mongo-leader/maintainability)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/3b010767baf5402b90ce45239a11d977)](https://www.codacy.com/app/andrewmolyuk/mongo-leader?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=andrewmolyuk/mongo-leader&amp;utm_campaign=Badge_Grade)
 
 Leader election backed by MongoDB, inspired by the [redis-leader](https://github.com/pierreinglebert/redis-leader).
 Class Leader extends the Node.js [EventEmmiter](https://nodejs.org/api/events.html#events_class_eventemitter) class.
 
 ## Install
 
-```
+```bash
 npm install mongo-leader
 ```
 ## Example
@@ -53,8 +54,7 @@ Default value is 'default'
 
 The function determines whether the instance is a leader.
 
-##### Returns
-Promise that resolved to `true` if the instance is a leader; otherwise, `false`.
+Returns promise that resolved to `true` if the instance is a leader; otherwise, `false`.
 
 ### Events
 
