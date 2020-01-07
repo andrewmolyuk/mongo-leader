@@ -33,7 +33,7 @@ class Leader extends EventEmitter {
 
   elect() {
     this.db.collection(this.key)
-      .findOneAndUpdate({}, { '$setOnInsert': { 'leader-id': this.id, 'createdAt': new Date() } },
+      .findOneAndUpdate({}, { $setOnInsert: { 'leader-id': this.id, createdAt: new Date() } },
         { upsert: true, new: false })
       .then(result => {
         if (result.lastErrorObject.updatedExisting) {
@@ -47,7 +47,7 @@ class Leader extends EventEmitter {
 
   renew() {
     this.db.collection(this.key)
-      .findOneAndUpdate({ 'leader-id': this.id }, { '$set': { 'leader-id': this.id, 'createdAt': new Date() } },
+      .findOneAndUpdate({ 'leader-id': this.id }, { $set: { 'leader-id': this.id, createdAt: new Date() } },
         { upsert: false, new: false })
       .then(result => {
         if (result.lastErrorObject.updatedExisting) {
