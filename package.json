@@ -35,7 +35,6 @@
   },
   "dependencies": {
     "assert": "^2.0.0",
-    "mongodb": "^3.4.1",
-    "npm-check-updates": "^4.0.1"
+    "mongodb": "^3.4.1"
   }
 }
