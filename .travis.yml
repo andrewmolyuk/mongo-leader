@@ -1,30 +1,33 @@
 language: node_js
 node_js:
-- node
+  - node
 branches:
   only:
-  - master
+    - master
 before_script:
-- curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
-  > ./cc-test-reporter
-- chmod +x ./cc-test-reporter
-- "./cc-test-reporter before-build"
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
+    > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - "./cc-test-reporter before-build"
 script:
-- git config --global user.email "builds@travis-ci.com"
-- git config --global user.name "Travis CI"
-- export GIT_TAG=1.0.$TRAVIS_BUILD_NUMBER
-- npm version $GIT_TAG --force
-- npm run eslint
+  - npm run eslint
 after_script:
-- "./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
+  - "./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
 before_deploy:
-- git tag $GIT_TAG -a -m $GIT_TAG
-- git push https://$GITHUB_TOKEN@github.com/andrewmolyuk/mongo-leader --tags
+  - git config --global user.email "builds@travis-ci.com"
+  - git config --global user.name "Travis CI"
+  - export GIT_TAG=1.0.$TRAVIS_BUILD_NUMBER
+  - git tag -a -m $GIT_TAG $GIT_TAG $TRAVIS_COMMIT
+  - git push https://$GITHUB_TOKEN@github.com/andrewmolyuk/mongo-leader --tags
+  - git tag -d $GIT_TAG
+  - npm version $GIT_TAG --force
 deploy:
   provider: npm
   email: andrew.molyuk@gmail.com
   api_key: "$NPM_TOKEN"
+  on:
+    branch: master
 env:
   global:
-  - secure: Z7c2NnpXfDz5a/aiIIwjKljrc+HMD3u4M/tjvVc4bLHFgc7zc8o9ylLcA0a/GHwUsMGwn6Q6f4h0PBG8ul5Coe1xBfENqkmf/HZLwNVexUDp9y+71c1Dnm+Jn95YHDQ7SJtA0wUdEQXcUqPGWpmsHQ0P+sTPqHkOmFEkLo5GNMzV6qGHSoBUAX2pIF1JxWDuFp483ZGCsinDGAq0fD+x2KKdBVlLL8rIfqxaoudDi/aHwmDWB8e/54h0g1/L3+Xu1zZZR0nzshrA+qhisLzCV9WEzBCSDh6deP8XrQob5UAfLu3YM5egEWNZXxJR55zU+6RyDrywCTyX/10t/3c6CnWaEucPsSOX6CgUV7bQwVOqJh7jtPEt4XO0Um3cYS7YcegjpGuwKm4xXI1Xtx5j+SuZE2WE/Q3yBhCjMEMKgsi1zkaGre5OXOpDiQfUZI2advbdCRGSqY3h4eydhIBZlZFDL4/BaNBCgyTGCQeXLw8B1L7NqeJqTOQabNDLOHTgj12JdkkmGVWCq6POT9CwNzS5pYpY0QqkUXpbNDL0LAgrBchpmfnvqv99npFrz3qhOUY5Y0udOdTgGTNmRqNBhiJiQsA/vEiG3GumeCsgPr98oTTIA6jfCN7APIgg4VT7z8OMe+s3Sna9XWW3MnNXH+IakHUPELsmCYrXmJTCSsc=
-  - secure: dyrUs98uaEJG//Du4EK+EQ8loqzbdNI6Lhm58slSiQY69m/q4c9fM8vodkKda4kInYKeZ2DW2iGbfy7dosevYD8G30K7hAXKQ1kmoUpXM4QAJzxztcv/56FTkdkX0fFh2JTSeBj4DKbaA/56RDF6YMioVSa7gesm+VqGrMS/5B/xvzANltvZN8Mc4wc+VBs9NeoDX/vahril6vhA5Xl/+4XQ+Q+pY7PpbA1xe+NeoopknATmS0CXW1/8e/4NAwnN1CrlrnNZFWwREbCKYAvdHpeN8PPGDwIhM6FcKv6KUiz3bAF0ETv9eJck5Rfr3+fiRwCYgi5LTdWUcr0O//VJHhtOMROMO1kEJz2C/sqo+elvz8D2+vChwLLiOAhyt9i/PIGjk9DMrq2BgrjsR+k6GZV1e3jqVPfm5Lo6nd5HzDCrXgSRWjvuCJ2WGo6NvOsugm4AsenM7C+FuUjZ/7ehaMeXoEkVxN7yVql+gQ05AsocseX0shhBiQ64hIB8ZWRjENDzrdpC13fSARsXqBMTay2EwzStmPknED1s/CzvVjxhM/SBDKqWKpWTCIJm4rYHAcNKOo20xLm/ZP0wwSVGeqWsnsNqt0o1jxZ7kBLLVgAPVfvPCTRMTACpS5+WfCAIdDU0qgollAOY7bcoBeDGOP3a5OIGXsYxLr94XjlmDz4=
+    - secure: Z7c2NnpXfDz5a/aiIIwjKljrc+HMD3u4M/tjvVc4bLHFgc7zc8o9ylLcA0a/GHwUsMGwn6Q6f4h0PBG8ul5Coe1xBfENqkmf/HZLwNVexUDp9y+71c1Dnm+Jn95YHDQ7SJtA0wUdEQXcUqPGWpmsHQ0P+sTPqHkOmFEkLo5GNMzV6qGHSoBUAX2pIF1JxWDuFp483ZGCsinDGAq0fD+x2KKdBVlLL8rIfqxaoudDi/aHwmDWB8e/54h0g1/L3+Xu1zZZR0nzshrA+qhisLzCV9WEzBCSDh6deP8XrQob5UAfLu3YM5egEWNZXxJR55zU+6RyDrywCTyX/10t/3c6CnWaEucPsSOX6CgUV7bQwVOqJh7jtPEt4XO0Um3cYS7YcegjpGuwKm4xXI1Xtx5j+SuZE2WE/Q3yBhCjMEMKgsi1zkaGre5OXOpDiQfUZI2advbdCRGSqY3h4eydhIBZlZFDL4/BaNBCgyTGCQeXLw8B1L7NqeJqTOQabNDLOHTgj12JdkkmGVWCq6POT9CwNzS5pYpY0QqkUXpbNDL0LAgrBchpmfnvqv99npFrz3qhOUY5Y0udOdTgGTNmRqNBhiJiQsA/vEiG3GumeCsgPr98oTTIA6jfCN7APIgg4VT7z8OMe+s3Sna9XWW3MnNXH+IakHUPELsmCYrXmJTCSsc=
+    - secure: dyrUs98uaEJG//Du4EK+EQ8loqzbdNI6Lhm58slSiQY69m/q4c9fM8vodkKda4kInYKeZ2DW2iGbfy7dosevYD8G30K7hAXKQ1kmoUpXM4QAJzxztcv/56FTkdkX0fFh2JTSeBj4DKbaA/56RDF6YMioVSa7gesm+VqGrMS/5B/xvzANltvZN8Mc4wc+VBs9NeoDX/vahril6vhA5Xl/+4XQ+Q+pY7PpbA1xe+NeoopknATmS0CXW1/8e/4NAwnN1CrlrnNZFWwREbCKYAvdHpeN8PPGDwIhM6FcKv6KUiz3bAF0ETv9eJck5Rfr3+fiRwCYgi5LTdWUcr0O//VJHhtOMROMO1kEJz2C/sqo+elvz8D2+vChwLLiOAhyt9i/PIGjk9DMrq2BgrjsR+k6GZV1e3jqVPfm5Lo6nd5HzDCrXgSRWjvuCJ2WGo6NvOsugm4AsenM7C+FuUjZ/7ehaMeXoEkVxN7yVql+gQ05AsocseX0shhBiQ64hIB8ZWRjENDzrdpC13fSARsXqBMTay2EwzStmPknED1s/CzvVjxhM/SBDKqWKpWTCIJm4rYHAcNKOo20xLm/ZP0wwSVGeqWsnsNqt0o1jxZ7kBLLVgAPVfvPCTRMTACpS5+WfCAIdDU0qgollAOY7bcoBeDGOP3a5OIGXsYxLr94XjlmDz4=
