@@ -66,4 +66,4 @@ Returns promise that resolved to `true` if the instance is a leader; otherwise, 
 
 ## License
 
-This project is licensed under the [MIT License](https://github.com/andrewmolyuk/mongo-leader/blob/main/LICENSE).
+This project is licensed under the [MIT License](https://github.com/andrewmolyuk/mongo-leader/blob/master/LICENSE).
