@@ -1,11 +1,10 @@
 {
   "name": "mongo-leader",
-  "version": "1.0.35",
+  "version": "1.0.0",
   "description": "Leader election backed by Mongo",
   "main": "index.js",
   "scripts": {
-    "init": "yarn install && yarn upgrade",
-    "eslint": "esw --ext .js *.js",
+    "eslint": "eslint --ext .js *.js",
     "eslint-watch": "esw --watch --ext .js index.js",
     "nodemon": "nodemon test.js"
   },
@@ -18,7 +17,7 @@
     "leader"
   ],
   "author": "Andrew Molyuk",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/andrewmolyuk/mongo-leader/issues"
   },
