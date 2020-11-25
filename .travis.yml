@@ -1,18 +1,15 @@
 language: node_js
+
 node_js:
   - node
+
 branches:
   only:
     - master
-before_script:
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64
-    > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - "./cc-test-reporter before-build"
+
 script:
   - npm run eslint
-after_script:
-  - "./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT"
+
 before_deploy:
   - git config --global user.email "builds@travis-ci.com"
   - git config --global user.name "Travis CI"
@@ -21,12 +18,14 @@ before_deploy:
   - git push https://$GITHUB_TOKEN@github.com/andrewmolyuk/mongo-leader --tags
   - git tag -d $GIT_TAG
   - npm version $GIT_TAG --force
+
 deploy:
   provider: npm
   email: andrew.molyuk@gmail.com
   api_key: "$NPM_TOKEN"
   on:
     branch: master
+
 env:
   global:
     - secure: Z7c2NnpXfDz5a/aiIIwjKljrc+HMD3u4M/tjvVc4bLHFgc7zc8o9ylLcA0a/GHwUsMGwn6Q6f4h0PBG8ul5Coe1xBfENqkmf/HZLwNVexUDp9y+71c1Dnm+Jn95YHDQ7SJtA0wUdEQXcUqPGWpmsHQ0P+sTPqHkOmFEkLo5GNMzV6qGHSoBUAX2pIF1JxWDuFp483ZGCsinDGAq0fD+x2KKdBVlLL8rIfqxaoudDi/aHwmDWB8e/54h0g1/L3+Xu1zZZR0nzshrA+qhisLzCV9WEzBCSDh6deP8XrQob5UAfLu3YM5egEWNZXxJR55zU+6RyDrywCTyX/10t/3c6CnWaEucPsSOX6CgUV7bQwVOqJh7jtPEt4XO0Um3cYS7YcegjpGuwKm4xXI1Xtx5j+SuZE2WE/Q3yBhCjMEMKgsi1zkaGre5OXOpDiQfUZI2advbdCRGSqY3h4eydhIBZlZFDL4/BaNBCgyTGCQeXLw8B1L7NqeJqTOQabNDLOHTgj12JdkkmGVWCq6POT9CwNzS5pYpY0QqkUXpbNDL0LAgrBchpmfnvqv99npFrz3qhOUY5Y0udOdTgGTNmRqNBhiJiQsA/vEiG3GumeCsgPr98oTTIA6jfCN7APIgg4VT7z8OMe+s3Sna9XWW3MnNXH+IakHUPELsmCYrXmJTCSsc=
