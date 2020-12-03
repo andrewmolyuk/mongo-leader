@@ -563,7 +563,7 @@ escape-string-regexp@^1.0.5:
   resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-1.0.5.tgz#1b61c0562190a8dff6ae3bb2cf0200ca130b86d4"
   integrity sha1-G2HAViGQqN/2rjuyzwIAyhMLhtQ=
 
-eslint-config-standard@^16.0.1:
+eslint-config-standard@^16.0.2:
   version "16.0.2"
   resolved "https://registry.yarnpkg.com/eslint-config-standard/-/eslint-config-standard-16.0.2.tgz#71e91727ac7a203782d0a5ca4d1c462d14e234f6"
   integrity sha512-fx3f1rJDsl9bY7qzyX8SAtP8GBSk6MfXFaTfaGgk12aAYW4gJSyRm7dM790L6cbXv63fvjY4XeSzXnb4WM+SKw==
@@ -676,7 +676,7 @@ eslint-watch@^7.0.0:
     optionator "^0.9.1"
     source-map-support "^0.5.13"
 
-eslint@^7.12.1:
+eslint@^7.14.0:
   version "7.14.0"
   resolved "https://registry.yarnpkg.com/eslint/-/eslint-7.14.0.tgz#2d2cac1d28174c510a97b377f122a5507958e344"
   integrity sha512-5YubdnPXrlrYAFCKybPuHIAH++PINe1pmKNc5wQRB9HSbqIK1ywAnntE3Wwua4giKu0bjligf1gLF6qxMGOYRA==
@@ -1351,7 +1351,7 @@ mkdirp@^0.5.1:
   dependencies:
     minimist "^1.2.5"
 
-mongodb@^3.6.2:
+mongodb@^3.6.3:
   version "3.6.3"
   resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-3.6.3.tgz#eddaed0cc3598474d7a15f0f2a5b04848489fd05"
   integrity sha512-rOZuR0QkodZiM+UbQE5kDsJykBqWi0CL4Ec2i1nrGrUI3KO11r6Fbxskqmq3JK2NH7aW4dcccBuUujAP0ERl5w==
