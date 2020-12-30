@@ -1,6 +1,6 @@
 # mongo-leader
 
-[![Build Status](https://travis-ci.com/andrewmolyuk/mongo-leader.svg?branch=master)](https://travis-ci.com/andrewmolyuk/mongo-leader)
+[![Build Status](https://img.shields.io/github/workflow/status/andrewmolyuk/mongo-leader/Release%20version)](https://github.com/andrewmolyuk/mongo-leader/actions?query=workflow%3A%22Release+version%22)
 [![Dependencies Status](https://badges.depfu.com/badges/63d997d7115c8f3b1c32c570f8941f56/overview.svg)](https://depfu.com/github/andrewmolyuk/mongo-leader?project_id=17960)
 [![Codacy Badge](https://img.shields.io/codacy/grade/3b010767baf5402b90ce45239a11d977)](https://www.codacy.com/app/andrewmolyuk/mongo-leader?utm_source=github.com&utm_medium=referral&utm_content=andrewmolyuk/mongo-leader&utm_campaign=Badge_Grade)
 [![Maintainability](https://img.shields.io/codeclimate/maintainability/andrewmolyuk/mongo-leader)](https://codeclimate.com/github/andrewmolyuk/mongo-leader/maintainability)
