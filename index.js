@@ -18,11 +18,11 @@ class Leader extends EventEmitter {
   initDatabase() {
     return this.db.command({ ping: 1 })
       .then(() => this.db.executeDbAdminCommand({ setParameter: 1, ttlMonitorSleepSecs: 1 }))
-      .then(() => this.db.dropCollection(this.key))
+      .then(() => this.db.listCollections({ name: this.key }))
       .catch((err) => {
         if (err.message !== 'ns not found') throw err;
       })
-      .then(() => this.db.createCollection(this.key))
+      .then((collection) => collection ? this.db.collection(this.key) : this.db.createCollection(this.key))
       .then((collection) => collection.createIndex({ createdAt: 1 }, { expireAfterSeconds: this.options.ttl / 1000 }));
   }
 
