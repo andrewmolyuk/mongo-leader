@@ -22,7 +22,7 @@ class Leader extends EventEmitter {
       .catch((err) => {
         if (err.message !== 'ns not found') throw err;
       })
-      .then((collection) => collection ? this.db.collection(this.key) : this.db.createCollection(this.key))
+      .then((cursor) => cursor.hasNext() ? this.db.collection(this.key) : this.db.createCollection(this.key))
       .then((collection) => collection.createIndex({ createdAt: 1 }, { expireAfterSeconds: this.options.ttl / 1000 }));
   }
 
