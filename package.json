@@ -34,6 +34,6 @@
   },
   "dependencies": {
     "assert": "^2.0.0",
-    "mongodb": "^3.6.3"
+    "mongodb": "^4.0.1"
   }
 }
