@@ -5,11 +5,14 @@
     "es6": true
   },
   "rules": {
-    "semi": [ 2, "always" ],
-    "space-before-function-paren": [ "error", {
-      "anonymous": "always",
-      "named": "never",
-      "asyncArrow": "ignore"
-    } ]
+    "semi": [2, "always"],
+    "space-before-function-paren": [
+      "error",
+      {
+        "anonymous": "always",
+        "named": "never",
+        "asyncArrow": "ignore"
+      }
+    ]
   }
 }
