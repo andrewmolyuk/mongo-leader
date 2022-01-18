@@ -23,17 +23,17 @@
   },
   "homepage": "https://github.com/andrewmolyuk/mongo-leader#readme",
   "devDependencies": {
-    "eslint": "^7.31.0",
+    "eslint": "^8.7.0",
     "eslint-config-standard": "^16.0.3",
-    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^5.1.0",
+    "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-standard": "^5.0.0",
-    "eslint-watch": "^7.0.0",
-    "nodemon": "^2.0.12"
+    "eslint-watch": "^8.0.0",
+    "nodemon": "^2.0.15"
   },
   "dependencies": {
     "assert": "^2.0.0",
-    "mongodb": "^4.0.1"
+    "mongodb": "^4.3.0"
   }
 }
