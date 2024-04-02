@@ -64,7 +64,7 @@ class Leader extends EventEmitter {
         { upsert: true, new: false }
       )
       .then(result => {
-        if (result.lastErrorObject.updatedExisting) {
+        if (result?.lastErrorObject?.updatedExisting) {
           setTimeout(() => this.elect(), this.options.wait);
         } else {
           this.emit('elected');
@@ -82,7 +82,7 @@ class Leader extends EventEmitter {
         { upsert: false, new: false }
       )
       .then(result => {
-        if (result.lastErrorObject.updatedExisting) {
+        if (result?.lastErrorObject?.updatedExisting) {
           setTimeout(() => this.renew(), this.options.ttl / 2);
         } else {
           this.emit('revoked');
