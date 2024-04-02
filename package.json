@@ -30,9 +30,9 @@
     "eslint-config-standard": "^17.1.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-n": "^16.6.2",
-    "eslint-plugin-promise": "^6.1.1",
-    "nodemon": "^3.1.0"
+    "eslint-plugin-promise": "^6.1.1"
   },
+  "_comment": "This is a temporary solution and will be removed after refactoring",
   "dependencies": {
     "assert": "^2.1.0",
     "mongodb": "^6.5.0"
