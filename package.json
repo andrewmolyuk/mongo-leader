@@ -4,7 +4,7 @@
   "description": "Leader election backed by Mongo",
   "main": "index.js",
   "scripts": {
-    "eslint": "eslint --ext .js *.js",
+    "lint": "eslint --ext .js *.js",
     "eslint-watch": "esw --watch --ext .js index.js",
     "nodemon": "nodemon test.js"
   },

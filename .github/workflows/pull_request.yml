@@ -1,18 +1,19 @@
-name: Pull Request build
+name: Lint and Test
 
-on: pull_request
+# Trigger the workflow on push or pull request commits only
+on:
+  push:
+    tags-ignore:
+      - '**'
+  pull_request:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
-      - uses: actions/cache@master
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          path: "**/node_modules"
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-      - uses: actions/setup-node@master
-        with:
-          node-version: "12.x"
-      - run: npm install
-      - run: npm run eslint
+          node-version: 20
+      - run: npm ci
+      - run: npm run lint
