@@ -10,14 +10,14 @@ class Leader extends EventEmitter {
     this.options = {}
     this.options.ttl = Math.max(options.ttl || 0, 1000) // Lock time to live
     this.options.wait = Math.max(options.wait || 0, 100) // Time between tries to be elected
-    this.key =
-      'leader-' +
-      crypto
-        .createHash('sha1')
-        .update(options.key || 'default')
-        .digest('hex')
+    this.stopped = false // Flag to stop the leader election
 
-    this.initDatabase().then(() => this.elect())
+    const hash = crypto
+      .createHash('sha1')
+      .update(options.key || 'default')
+      .digest('hex')
+
+    this.key = `leader-${hash}`
   }
 
   initDatabase() {
@@ -56,6 +56,7 @@ class Leader extends EventEmitter {
   }
 
   elect() {
+    if (this.stopped) return
     this.db
       .collection(this.key)
       .findOneAndUpdate(
@@ -74,6 +75,7 @@ class Leader extends EventEmitter {
   }
 
   renew() {
+    if (this.stopped) return
     this.db
       .collection(this.key)
       .findOneAndUpdate(
@@ -89,6 +91,15 @@ class Leader extends EventEmitter {
           setTimeout(() => this.elect(), this.options.wait)
         }
       })
+  }
+
+  stop() {
+    this.stopped = true
+  }
+
+  start() {
+    this.stopped = false
+    this.initDatabase().then(() => this.elect())
   }
 }
 
