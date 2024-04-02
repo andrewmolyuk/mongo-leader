@@ -3,9 +3,13 @@ name: Lint & Test
 # Trigger the workflow on push or pull request commits only
 on:
   push:
+    branches:
+      - master
     tags-ignore:
       - '**'
   pull_request:
+    branches:
+      - master
 
 jobs:
   build:
