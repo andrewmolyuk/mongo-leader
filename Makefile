@@ -5,7 +5,7 @@ lint:
 @PHONY: lint
 
 test:
-	npx mocha tests/*.js
+	npx jest tests/*.js
 @PHONY: test
 
 upgrade:

@@ -19,3 +19,4 @@ jobs:
           node-version: 20
       - run: npm ci
       - run: make lint
+      - run: make test
