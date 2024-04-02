@@ -1,4 +1,4 @@
-name: Lint and Test
+name: Lint & Test
 
 # Trigger the workflow on push or pull request commits only
 on:
@@ -16,4 +16,4 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
-      - run: npm run lint
+      - run: make lint

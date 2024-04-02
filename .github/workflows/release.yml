@@ -1,4 +1,4 @@
-name: Release version
+name: Release
 
 # Trigger the build on release tag push only
 on:
