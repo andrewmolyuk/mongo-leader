@@ -1,6 +1,6 @@
 {
   "name": "mongo-leader",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "Leader election backed by MongoDB",
   "main": "index.js",
   "repository": {
@@ -32,11 +32,6 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-standard": "^5.0.0",
-    "eslint-watch": "^8.0.0",
-    "nodemon": "^3.1.0"
-  },
-  "dependencies": {
-    "assert": "^2.1.0",
-    "mongodb": "^6.5.0"
+    "eslint-watch": "^8.0.0"
   }
 }
