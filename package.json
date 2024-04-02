@@ -32,6 +32,11 @@
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-standard": "^5.0.0",
-    "eslint-watch": "^8.0.0"
+    "eslint-watch": "^8.0.0",
+    "nodemon": "^2.0.15"
+  },
+  "dependencies": {
+    "assert": "^2.0.0",
+    "mongodb": "^5.2.0"
   }
 }
