@@ -12,6 +12,8 @@
 
 ## Install
 
+To install `mongo-leader` package with npm, you can use the following command:
+
 ```bash
 npm install mongo-leader
 ```
