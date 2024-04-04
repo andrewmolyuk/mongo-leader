@@ -1,6 +1,6 @@
 'use strict'
 
-const { describe, it, expect, afterEach } = require('@jest/globals')
+const { describe, it, expect } = require('@jest/globals')
 
 const { Leader } = require('../index')
 const { mockDb, mockCollection } = require('./mocks')
