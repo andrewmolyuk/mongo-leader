@@ -19,7 +19,7 @@ describe('Leader', () => {
         expect(leader.key).toMatch(/^leader-?/)
       } finally {
         // Cleanup
-        leader.stop()
+        leader.pause()
       }
     })
   })
@@ -34,7 +34,7 @@ describe('Leader', () => {
         expect(mockCollection.createIndex).toHaveBeenCalled()
       } finally {
         // Cleanup
-        leader.stop()
+        leader.pause()
       }
     })
   })
@@ -50,7 +50,7 @@ describe('Leader', () => {
         expect(result).toBe(true)
       } finally {
         // Cleanup
-        leader.stop()
+        leader.pause()
       }
     })
   })
@@ -65,7 +65,7 @@ describe('Leader', () => {
         expect(mockCollection.findOneAndUpdate).toHaveBeenCalled()
       } finally {
         // Cleanup
-        leader.stop()
+        leader.pause()
       }
     })
   })
@@ -80,22 +80,22 @@ describe('Leader', () => {
         expect(mockCollection.findOneAndUpdate).toHaveBeenCalled()
       } finally {
         // Cleanup
-        leader.stop()
+        leader.pause()
       }
     })
   })
-  describe('stop', () => {
-    it('should stop the leader', function () {
+  describe('pause', () => {
+    it('should pause the leader', function () {
       // Arrange
       const leader = new Leader(mockDb)
       try {
         // Act
-        leader.stop()
+        leader.pause()
         // Assert
-        expect(leader.stopped).toBe(true)
+        expect(leader.paused).toBe(true)
       } finally {
         // Cleanup
-        leader.stop()
+        leader.pause()
       }
     })
   })
@@ -105,13 +105,13 @@ describe('Leader', () => {
       const leader = new Leader(mockDb)
       try {
         // Act
-        leader.stop()
-        leader.start()
+        leader.pause()
+        leader.resume()
         // Assert
-        expect(leader.stopped).toBe(false)
+        expect(leader.paused).toBe(false)
       } finally {
         // Cleanup
-        leader.stop()
+        leader.pause()
       }
     })
   })

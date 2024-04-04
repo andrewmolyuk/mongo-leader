@@ -20,18 +20,18 @@ npm install mongo-leader
 ## Example
 
 ```javascript
-const { Leader } = require('mongo-leader');
-const { MongoClient } = require('mongodb');
+const { Leader } = require('mongo-leader')
+const { MongoClient } = require('mongodb')
 
-const url = 'mongodb://localhost:27017';
+const url = 'mongodb://localhost:27017'
 
 MongoClient.connect(url, { useNewUrlParser: true }, function (err, client) {
-  const db = client.db('test');
-  const leader = new Leader(db, { ttl: 5000, wait: 1000 });
+  const db = client.db('test')
+  const leader = new Leader(db, { ttl: 5000, wait: 1000 })
   setInterval(() => {
-    leader.isLeader().then(leader => console.log(`Am I leader? : ${leader}`));
-  }, 100);
-});
+    leader.isLeader().then((leader) => console.log(`Am I leader? : ${leader}`))
+  }, 100)
+})
 ```
 
 ## API

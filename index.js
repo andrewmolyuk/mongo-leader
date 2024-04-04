@@ -58,7 +58,7 @@ class Leader extends EventEmitter {
   }
 
   elect() {
-    if (this.stopped) return
+    if (this.paused) return
     this.db
       .collection(this.key)
       .findOneAndUpdate(
@@ -77,7 +77,7 @@ class Leader extends EventEmitter {
   }
 
   renew() {
-    if (this.stopped) return
+    if (this.paused) return
     this.db
       .collection(this.key)
       .findOneAndUpdate(
@@ -95,12 +95,15 @@ class Leader extends EventEmitter {
       })
   }
 
-  stop() {
-    this.stopped = true
+  pause() {
+    if (!this.paused) this.paused = true
   }
 
-  start() {
-    this.stopped = false
+  resume() {
+    if (this.paused) {
+      this.paused = false
+      this.elect()
+    }
   }
 }
 
