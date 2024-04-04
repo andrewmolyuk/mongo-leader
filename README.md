@@ -8,8 +8,7 @@
 [![NPM downloads](http://img.shields.io/npm/dw/mongo-leader.svg?style=flat)](http://npm.im/mongo-leader)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com)
 
-Leader election backed by MongoDB, inspired by the [redis-leader](https://github.com/pierreinglebert/redis-leader).
-Class Leader extends the Node.js [EventEmmiter](https://nodejs.org/api/events.html#events_class_eventemitter) class.
+`mongo-leader` is a Node.js package for leader election backed by MongoDB. It is inspired by the [redis-leader](https://github.com/pierreinglebert/redis-leader) library. The main class `Leader` extends the Node.js [EventEmmiter](https://nodejs.org/api/events.html#events_class_eventemitter) class, allowing instances to emit events when they gain or lose leadership status. This makes it a powerful tool for managing distributed systems where only one instance should be in control at any given time.
 
 ## Install
 
@@ -38,19 +37,17 @@ MongoClient.connect(url, { useNewUrlParser: true }, function (err, client) {
 
 ### new Leader(db, options)
 
-Create a new Leader class
+Creates a new Leader instance.
 
-`db` is a MongoClient object
+#### Parameters
 
-`options.ttl` Lock time to live in milliseconds.  
-Will be automatically released after that time.  
-Default and minimum values are 1000.
+- `db`: A MongoClient object.
+- `options`: An object with the following properties:
+  - `ttl`: Lock time to live in milliseconds. The lock will be automatically released after this time. Default and minimum values are 1000.
+  - `wait`: Time between tries getting elected in milliseconds. Default and minimum values are 100.
+  - `key`: Unique identifier for the group of instances trying to be elected as leader. Default value is 'default'.
 
-`options.wait` Time between tries getting elected in milliseconds.  
-Default and minimum values are 100.
-
-`options.key` Unique identifier for the group of instances trying to be elected as leader.  
-Default value is 'default'
+When the `Leader` constructor is invoked, it immediately initiates the election process to become the leader. This means that as soon as a `Leader` instance is created, it starts competing with other instances (if any) to gain the leadership role. This is done by attempting to acquire a lock in the MongoDB collection. If the lock is successfully acquired, the instance becomes the leader. The lock has a time-to-live (TTL) associated with it, after which it is automatically released. This allows for a continuous and dynamic leadership election process where leadership can change over time, especially in scenarios where the current leader instance becomes unavailable or is shut down.
 
 ### isLeader()
 
@@ -68,11 +65,15 @@ This method is used to resume the leader election process. When called, the inst
 
 Note: The `resume()` method does not make the instance become a leader immediately. It simply allows the instance to start attempting to become a leader again.
 
-### Events
+## Events
 
-`elected` The event fired when the instance become a leader.
+### elected
 
-`revoked` The event fired when the instance revoked from it's leadership.
+The `elected` event is emitted when the instance successfully becomes a leader. This event can be listened to in order to perform actions that should only be done by the leader instance. For example, you might want to start certain tasks or services only when the instance has been elected as the leader.
+
+### revoked
+
+The `revoked` event is emitted when the instance loses its leadership status. This event can be listened to in order to perform actions when the instance is no longer the leader. For example, you might want to stop certain tasks or services when the instance has been revoked from being the leader.
 
 ## License
 
