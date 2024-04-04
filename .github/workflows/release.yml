@@ -1,10 +1,7 @@
 name: Release
 
-# Trigger the build on release tag push only
-on:
-  push:
-    tags:
-      - '**'
+# Trigger the build on release manually
+on: workflow_dispatch
 
 jobs:
   build:
