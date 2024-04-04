@@ -18,6 +18,7 @@ class Leader extends EventEmitter {
       .digest('hex')
 
     this.key = `leader-${hash}`
+    this.initDatabase().then(() => this.elect())
   }
 
   initDatabase() {
@@ -30,8 +31,9 @@ class Leader extends EventEmitter {
       .catch((err) => {
         if (err.message !== 'ns not found') throw err
       })
-      .then((cursor) =>
-        cursor.hasNext()
+      .then((cursor) => cursor.hasNext())
+      .then((exists) =>
+        exists
           ? this.db.collection(this.key)
           : this.db.createCollection(this.key)
       )
@@ -99,7 +101,6 @@ class Leader extends EventEmitter {
 
   start() {
     this.stopped = false
-    this.initDatabase().then(() => this.elect())
   }
 }
 
