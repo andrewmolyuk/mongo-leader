@@ -11,8 +11,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm install
-      - run: npm run eslint
+      - run: npm ci
+      - run: make lint
+      - run: make test
       - name: Bump version and push tag
         id: bump-version
         uses: anothrNick/github-tag-action@master
