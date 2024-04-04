@@ -2,7 +2,7 @@
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/andrewmolyuk/mongo-leader/release.yml)](https://github.com/andrewmolyuk/mongo-leader/actions?query=workflow%3A%22Release%22)
 [![Dependencies Status](https://badges.depfu.com/badges/0ef074dc6382d73db38b144ba8a1b938/overview.svg)](https://depfu.com/github/andrewmolyuk/mongo-leader?project_id=40081)
-[![Codacy Badge](https://img.shields.io/codacy/grade/3b010767baf5402b90ce45239a11d977)](https://www.codacy.com/app/andrewmolyuk/mongo-leader?utm_source=github.com&utm_medium=referral&utm_content=andrewmolyuk/mongo-leader&utm_campaign=Badge_Grade)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/3b010767baf5402b90ce45239a11d977)](https://app.codacy.com/gh/andrewmolyuk/mongo-leader/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![Maintainability](https://img.shields.io/codeclimate/maintainability/andrewmolyuk/mongo-leader)](https://codeclimate.com/github/andrewmolyuk/mongo-leader/maintainability)
 [![NPM](https://img.shields.io/npm/v/mongo-leader.svg?style=flat)](http://npm.im/mongo-leader)
 [![NPM downloads](http://img.shields.io/npm/dw/mongo-leader.svg?style=flat)](http://npm.im/mongo-leader)
