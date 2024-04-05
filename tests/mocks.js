@@ -1,5 +1,8 @@
 // Mocking the MongoDB database object
 // This is a mock database object that can be used in tests to simulate the MongoDB database object.
+/* global jest */
+
+'use strict'
 
 const mockCollection = {
   createIndex: jest.fn(() => Promise.resolve()),

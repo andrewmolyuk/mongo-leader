@@ -1,11 +1,8 @@
 {
-  "plugins": ["jest"],
   "env": {
     "browser": true,
     "commonjs": true,
-    "es2021": true,
-    "jest/globals": true,
-    "jest": true
+    "es2021": true
   },
   "extends": "standard",
   "parserOptions": {
