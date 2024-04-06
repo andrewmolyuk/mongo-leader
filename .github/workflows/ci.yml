@@ -49,3 +49,10 @@ jobs:
         run: bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l JavaScript -r coverage/lcov.info
         env:
           CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+
+      - name: Upload test coverage to Code Climate
+        uses: paambaati/codeclimate-action@v2.5.7
+        env:
+          CC_TEST_REPORTER_ID: 9db1997362bde3d575898d4ff0eb936f0b890cca1952fb9e6d22e831e6941bb0
+        with:
+          coverageLocations: coverage/lcov.info:lcov
