@@ -5,7 +5,7 @@ lint:
 @PHONY: lint
 
 test:
-	npx jest --detectOpenHandles tests/*.test.js
+	npx jest
 @PHONY: test
 
 upgrade:

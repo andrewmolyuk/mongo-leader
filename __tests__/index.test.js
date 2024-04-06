@@ -3,7 +3,7 @@
 const { describe, it, expect } = require('@jest/globals')
 
 const { Leader } = require('../index')
-const { mockDb, mockCollection } = require('./mocks')
+const { mockDb, mockCollection } = require('./__mocks__/db')
 
 describe('Leader', () => {
   describe('constructor', () => {
@@ -48,6 +48,7 @@ describe('Leader', () => {
         const result = await leader.isLeader()
         // Assert
         expect(result).toBe(true)
+        expect(mockCollection.findOne).toHaveBeenCalled()
       } finally {
         // Cleanup
         leader.pause()
