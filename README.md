@@ -3,10 +3,9 @@
 [![Build Status](https://img.shields.io/github/actions/workflow/status/andrewmolyuk/mongo-leader/publish.yml)](https://github.com/andrewmolyuk/mongo-leader/actions/workflows/publish.yml)
 [![Dependencies Status](https://badges.depfu.com/badges/0ef074dc6382d73db38b144ba8a1b938/overview.svg)](https://depfu.com/github/andrewmolyuk/mongo-leader?project_id=40081)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/3b010767baf5402b90ce45239a11d977)](https://app.codacy.com/gh/andrewmolyuk/mongo-leader/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
-[![Maintainability](https://img.shields.io/codeclimate/maintainability/andrewmolyuk/mongo-leader)](https://codeclimate.com/github/andrewmolyuk/mongo-leader/maintainability)
+[![Codacy Badge](https://app.codacy.com/project/badge/Coverage/3b010767baf5402b90ce45239a11d977)](https://app.codacy.com/gh/andrewmolyuk/mongo-leader/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)[![Maintainability](https://img.shields.io/codeclimate/maintainability/andrewmolyuk/mongo-leader)](https://codeclimate.com/github/andrewmolyuk/mongo-leader/maintainability)
 [![NPM](https://img.shields.io/npm/v/mongo-leader.svg?style=flat)](http://npm.im/mongo-leader)
 [![NPM downloads](http://img.shields.io/npm/dw/mongo-leader.svg?style=flat)](http://npm.im/mongo-leader)
-[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com)
 
 `mongo-leader` is a Node.js package for leader election backed by MongoDB. It is inspired by the [redis-leader](https://github.com/pierreinglebert/redis-leader) library. The main class `Leader` extends the Node.js [EventEmmiter](https://nodejs.org/api/events.html#events_class_eventemitter) class, allowing instances to emit events when they gain or lose leadership status. This makes it a powerful tool for managing distributed systems where only one instance should be in control at any given time.
 
