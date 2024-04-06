@@ -55,4 +55,5 @@ jobs:
         env:
           CC_TEST_REPORTER_ID: 9db1997362bde3d575898d4ff0eb936f0b890cca1952fb9e6d22e831e6941bb0
         with:
+          coverageCommand: make test
           coverageLocations: coverage/lcov.info:lcov
