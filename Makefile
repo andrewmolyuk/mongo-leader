@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 
 lint:
-	npx eslint . --ext .js
+	npx eslint 
 @PHONY: lint
 
 test:
