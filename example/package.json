@@ -10,6 +10,6 @@
   "license": "ISC",
   "dependencies": {
     "mongo": "^0.1.0",
-    "mongo-leader": "^1.0.140"
+    "mongo-leader": "^1.0.141"
   }
 }
