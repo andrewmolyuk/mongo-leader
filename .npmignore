@@ -1,8 +1,10 @@
 .gitignore
-.idea
-.eslintrc
-.travis.yml
+eslint.config.cjs
+prettierrc.json
+jest.config.js
+Makefile
 .npmignore
 .DS_Store
-.env
 package-lock.json
+/tests/
+README.md
