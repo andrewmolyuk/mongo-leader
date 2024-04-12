@@ -27,15 +27,12 @@ describe('Leader', () => {
       const leader = new Leader(mockDb)
       // Act
       await leader.initDatabase()
-      try {
-        // Assert
-        expect(mockDb.createCollection).toHaveBeenCalled()
-        expect(mockDb.createCollection).toHaveBeenCalledWith(leader.key)
-        expect(mockCollection.createIndex).toHaveBeenCalled()
-      } finally {
-        // Cleanup
-        leader.pause()
-      }
+      // Assert
+      expect(mockDb.createCollection).toHaveBeenCalled()
+      expect(mockDb.createCollection).toHaveBeenCalledWith(leader.key)
+      expect(mockCollection.createIndex).toHaveBeenCalled()
+      // Cleanup
+      leader.pause()
     })
     it('should not create collection if collection is exists', async () => {
       // Arrange
@@ -46,16 +43,13 @@ describe('Leader', () => {
       jest.clearAllMocks()
       // Act
       await leader.initDatabase()
-      try {
-        // Assert
-        expect(mockDb.createCollection).not.toHaveBeenCalled()
-        expect(mockDb.collection).toHaveBeenCalled()
-        expect(mockDb.collection).toHaveBeenCalledWith(leader.key)
-        expect(mockCollection.createIndex).toHaveBeenCalled()
-      } finally {
-        // Cleanup
-        leader.pause()
-      }
+      // Assert
+      expect(mockDb.createCollection).not.toHaveBeenCalled()
+      expect(mockDb.collection).toHaveBeenCalled()
+      expect(mockDb.collection).toHaveBeenCalledWith(leader.key)
+      expect(mockCollection.createIndex).toHaveBeenCalled()
+      // Cleanup
+      leader.pause()
     })
   })
   describe('isLeader', () => {
@@ -64,16 +58,13 @@ describe('Leader', () => {
       const leader = new Leader(mockDb)
       mockCollection.findOne.mockResolvedValue({ 'leader-id': leader.id })
       await leader.start()
-      try {
-        // Act
-        const result = await leader.isLeader()
-        // Assert
-        expect(result).toBe(true)
-        expect(mockCollection.findOne).toHaveBeenCalled()
-      } finally {
-        // Cleanup
-        leader.pause()
-      }
+      // Act
+      const result = await leader.isLeader()
+      // Assert
+      expect(result).toBe(true)
+      expect(mockCollection.findOne).toHaveBeenCalled()
+      // Cleanup
+      leader.pause()
     })
   })
   describe('elect', () => {
@@ -81,15 +72,12 @@ describe('Leader', () => {
       // Arrange
       const leader = new Leader(mockDb)
       await leader.start()
-      try {
-        // Act
-        await leader.elect()
-        // Assert
-        expect(mockCollection.findOneAndUpdate).toHaveBeenCalled()
-      } finally {
-        // Cleanup
-        leader.pause()
-      }
+      // Act
+      await leader.elect()
+      // Assert
+      expect(mockCollection.findOneAndUpdate).toHaveBeenCalled()
+      // Cleanup
+      leader.pause()
     })
     it('should continue to be elected if the leader is the current instance', async () => {
       // Arrange
@@ -98,30 +86,24 @@ describe('Leader', () => {
         lastErrorObject: { updatedExisting: true }
       })
       await leader.start()
-      try {
-        // Act
-        await leader.elect()
-        // Assert
-        expect(mockCollection.findOneAndUpdate).toHaveBeenCalled()
-      } finally {
-        // Cleanup
-        leader.pause()
-      }
+      // Act
+      await leader.elect()
+      // Assert
+      expect(mockCollection.findOneAndUpdate).toHaveBeenCalled()
+      // Cleanup
+      leader.pause()
     })
     it('should not elect if paused', async () => {
       // Arrange
       const leader = new Leader(mockDb)
       await leader.pause()
       jest.clearAllMocks()
-      try {
-        // Act
-        await leader.elect()
-        // Assert
-        expect(mockCollection.findOneAndUpdate).not.toHaveBeenCalled()
-      } finally {
-        // Cleanup
-        leader.pause()
-      }
+      // Act
+      await leader.elect()
+      // Assert
+      expect(mockCollection.findOneAndUpdate).not.toHaveBeenCalled()
+      // Cleanup
+      leader.pause()
     })
   })
   describe('renew', () => {
@@ -129,15 +111,12 @@ describe('Leader', () => {
       // Arrange
       const leader = new Leader(mockDb)
       await leader.start()
-      try {
-        // Act
-        await leader.renew()
-        // Assert
-        expect(mockCollection.findOneAndUpdate).toHaveBeenCalled()
-      } finally {
-        // Cleanup
-        leader.pause()
-      }
+      // Act
+      await leader.renew()
+      // Assert
+      expect(mockCollection.findOneAndUpdate).toHaveBeenCalled()
+      // Cleanup
+      leader.pause()
     })
     it('should continue to elect if the leader is the current instance', async () => {
       // Arrange
@@ -146,30 +125,24 @@ describe('Leader', () => {
         lastErrorObject: { updatedExisting: false }
       })
       await leader.start()
-      try {
-        // Act
-        await leader.renew()
-        // Assert
-        expect(mockCollection.findOneAndUpdate).toHaveBeenCalled()
-      } finally {
-        // Cleanup
-        leader.pause()
-      }
+      // Act
+      await leader.renew()
+      // Assert
+      expect(mockCollection.findOneAndUpdate).toHaveBeenCalled()
+      // Cleanup
+      leader.pause()
     })
     it('should not renew if paused', async () => {
       // Arrange
       const leader = new Leader(mockDb)
       await leader.pause()
       jest.clearAllMocks()
-      try {
-        // Act
-        await leader.renew()
-        // Assert
-        expect(mockCollection.findOneAndUpdate).not.toHaveBeenCalled()
-      } finally {
-        // Cleanup
-        leader.pause()
-      }
+      // Act
+      await leader.renew()
+      // Assert
+      expect(mockCollection.findOneAndUpdate).not.toHaveBeenCalled()
+      // Cleanup
+      leader.pause()
     })
   })
   describe('pause', () => {
@@ -177,15 +150,12 @@ describe('Leader', () => {
       // Arrange
       const leader = new Leader(mockDb)
       await leader.start()
-      try {
-        // Act
-        leader.pause()
-        // Assert
-        expect(leader.paused).toBe(true)
-      } finally {
-        // Cleanup
-        leader.pause()
-      }
+      // Act
+      leader.pause()
+      // Assert
+      expect(leader.paused).toBe(true)
+      // Cleanup
+      leader.pause()
     })
   })
   describe('resume', () => {
@@ -194,45 +164,36 @@ describe('Leader', () => {
       const leader = new Leader(mockDb)
       await leader.start()
       leader.pause()
-      try {
-        // Act
-        await leader.resume()
-        // Assert
-        expect(leader.paused).toBe(false)
-      } finally {
-        // Cleanup
-        leader.pause()
-      }
+      // Act
+      await leader.resume()
+      // Assert
+      expect(leader.paused).toBe(false)
+      // Cleanup
+      leader.pause()
     })
     it('should not resume if not paused', async () => {
       // Arrange
       const leader = new Leader(mockDb)
       await leader.start()
       jest.clearAllMocks()
-      try {
-        // Act
-        await leader.resume()
-        // Assert
-        expect(mockCollection.findOneAndUpdate).not.toHaveBeenCalled()
-      } finally {
-        // Cleanup
-        leader.pause()
-      }
+      // Act
+      await leader.resume()
+      // Assert
+      expect(mockCollection.findOneAndUpdate).not.toHaveBeenCalled()
+      // Cleanup
+      leader.pause()
     })
   })
   describe('start', () => {
     it('should start the leader', async () => {
       // Arrange
       const leader = new Leader(mockDb)
-      try {
-        // Act
-        await leader.start()
-        // Assert
-        expect(leader.paused).toBe(false)
-      } finally {
-        // Cleanup
-        leader.pause()
-      }
+      // Act
+      await leader.start()
+      // Assert
+      expect(leader.paused).toBe(false)
+      // Cleanup
+      leader.pause()
     })
     it('should not call initDatabase if already initiated', async () => {
       // Arrange
