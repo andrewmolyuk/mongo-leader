@@ -9,8 +9,9 @@ async function connectAndStart() {
   const leader = new Leader(client.db('test'))
   await leader.start()
 
-  setInterval(() => {
-    leader.isLeader().then((leader) => console.log(`Am I leader? : ${leader}`))
+  setInterval(async () => {
+    const isLeader = await leader.isLeader()
+    console.log(`Am I leader? : ${isLeader}`)
   }, 100)
 }
 

@@ -21,95 +21,77 @@ class Leader extends EventEmitter {
     this.key = `leader-${hash}`
   }
 
-  initDatabase() {
-    return this.db
-      .command({ ping: 1 })
-      .then(() =>
-        this.db.admin().command({ setParameter: 1, ttlMonitorSleepSecs: 1 })
-      )
-      .then(() => this.db.listCollections({ name: this.key }))
-      .catch((err) => {
-        if (err.message !== 'ns not found') throw err
-      })
-      .then((cursor) => cursor.hasNext())
-      .then((exists) =>
-        exists
-          ? this.db.collection(this.key)
-          : this.db.createCollection(this.key)
-      )
-      .then((collection) =>
-        collection.createIndex(
-          { createdAt: 1 },
-          { expireAfterSeconds: this.options.ttl / 1000, background: true }
-        )
-      )
+  async initDatabase() {
+    await this.db.command({ ping: 1 })
+    await this.db.admin().command({ setParameter: 1, ttlMonitorSleepSecs: 1 })
+    const cursor = await this.db.listCollections({ name: this.key })
+    const exists = await cursor.hasNext()
+    const collection = exists
+      ? this.db.collection(this.key)
+      : await this.db.createCollection(this.key)
+    await collection.createIndex(
+      { createdAt: 1 },
+      { expireAfterSeconds: this.options.ttl / 1000, background: true }
+    )
   }
 
-  isLeader() {
-    return this.db
+  async isLeader() {
+    const item = await this.db
       .collection(this.key)
       .findOne({ 'leader-id': this.id })
-      .then(
-        (item) =>
-          item !== null &&
-          typeof item !== 'undefined' &&
-          item['leader-id'] === this.id
-      )
+    return item != null && item['leader-id'] === this.id
   }
 
   async start() {
     if (!this.initiated) {
       this.initiated = true
-      return this.initDatabase().then(() => this.elect())
+      await this.initDatabase()
+      await this.elect()
     }
   }
 
-  elect() {
+  async elect() {
     if (this.paused) return
-    this.db
+    const result = await this.db
       .collection(this.key)
       .findOneAndUpdate(
         {},
         { $setOnInsert: { 'leader-id': this.id, createdAt: new Date() } },
-        { upsert: true, new: false }
+        { upsert: true, returnOriginal: false }
       )
-      .then((result) => {
-        if (result?.lastErrorObject?.updatedExisting) {
-          setTimeout(() => this.elect(), this.options.wait)
-        } else {
-          this.emit('elected')
-          setTimeout(() => this.renew(), this.options.ttl / 2)
-        }
-      })
+    if (result?.lastErrorObject?.updatedExisting) {
+      setTimeout(() => this.elect(), this.options.wait)
+    } else {
+      this.emit('elected')
+      setTimeout(() => this.renew(), this.options.ttl / 2)
+    }
   }
 
-  renew() {
+  async renew() {
     if (this.paused) return
-    this.db
+    const result = await this.db
       .collection(this.key)
       .findOneAndUpdate(
         { 'leader-id': this.id },
         { $set: { 'leader-id': this.id, createdAt: new Date() } },
-        { upsert: false, new: false }
+        { upsert: false, returnOriginal: false }
       )
-      .then((result) => {
-        if (result?.lastErrorObject?.updatedExisting) {
-          setTimeout(() => this.renew(), this.options.ttl / 2)
-        } else {
-          this.emit('revoked')
-          setTimeout(() => this.elect(), this.options.wait)
-        }
-      })
+    if (result?.lastErrorObject?.updatedExisting) {
+      setTimeout(() => this.renew(), this.options.ttl / 2)
+    } else {
+      this.emit('revoked')
+      setTimeout(() => this.elect(), this.options.wait)
+    }
   }
 
   pause() {
     if (!this.paused) this.paused = true
   }
 
-  resume() {
+  async resume() {
     if (this.paused) {
       this.paused = false
-      this.elect()
+      await this.elect()
     }
   }
 }
