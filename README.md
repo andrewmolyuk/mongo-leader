@@ -50,6 +50,10 @@ Creates a new Leader instance.
 
 When the `Leader` constructor is invoked, it immediately initiates the election process to become the leader. This means that as soon as a `Leader` instance is created, it starts competing with other instances (if any) to gain the leadership role. This is done by attempting to acquire a lock in the MongoDB collection. If the lock is successfully acquired, the instance becomes the leader. The lock has a time-to-live (TTL) associated with it, after which it is automatically released. This allows for a continuous and dynamic leadership election process where leadership can change over time, especially in scenarios where the current leader instance becomes unavailable or is shut down.
 
+### start()
+
+This method triggers the election process. It carries out the required setup in database and kick-starts the election procedure.
+
 ### isLeader()
 
 This method is used to check if the current instance is the leader. It returns a Promise that resolves to a boolean value. `true` indicates that the current instance is the leader, and `false` indicates that it is not.
