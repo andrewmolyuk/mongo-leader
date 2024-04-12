@@ -10,7 +10,8 @@ class Leader extends EventEmitter {
     this.options = {}
     this.options.ttl = Math.max(options.ttl || 0, 1000) // Lock time to live
     this.options.wait = Math.max(options.wait || 0, 100) // Time between tries to be elected
-    this.stopped = false // Flag to stop the leader election
+    this.paused = false
+    this.initiated = false
 
     const hash = crypto
       .createHash('sha1')
@@ -18,7 +19,6 @@ class Leader extends EventEmitter {
       .digest('hex')
 
     this.key = `leader-${hash}`
-    this.initDatabase().then(() => this.elect())
   }
 
   initDatabase() {
@@ -55,6 +55,13 @@ class Leader extends EventEmitter {
           typeof item !== 'undefined' &&
           item['leader-id'] === this.id
       )
+  }
+
+  async start() {
+    if (!this.initiated) {
+      this.initiated = true
+      return this.initDatabase().then(() => this.elect())
+    }
   }
 
   elect() {

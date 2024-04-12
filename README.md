@@ -17,21 +17,22 @@ To install `mongo-leader` package with npm, you can use the following command:
 npm install mongo-leader
 ```
 
-## Example
+## Usage
 
 ```javascript
-const { Leader } = require('mongo-leader')
-const { MongoClient } = require('mongodb')
+const client = await MongoClient.connect(url)
 
-const url = 'mongodb://localhost:27017'
+const leader = new Leader(client.db('test'))
+await leader.start()
 
-MongoClient.connect(url).then((client) => {
-  const leader = new Leader(client.db('test'))
-  setInterval(() => {
-    leader.isLeader().then((leader) => console.log(`Am I leader? : ${leader}`))
-  }, 100)
-})
+setInterval(() => {
+  leader.isLeader().then((leader) => console.log(`Am I leader? : ${leader}`))
+}, 100)
 ```
+
+## Upgrade
+
+Breaking changes have been made when upgrading from a version earlier than `1.1.142`. All asynchronous operations have been shifted from the constructor to a new method named `start()`, which needs to be called separately like in the example above.
 
 ## API
 

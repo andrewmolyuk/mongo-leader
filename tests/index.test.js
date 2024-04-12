@@ -7,26 +7,23 @@ const { mockDb, mockCollection } = require('./__mocks__/db')
 
 describe('Leader', () => {
   describe('constructor', () => {
-    it('should set default options', function () {
+    it('should set default options', () => {
       // Act
       const leader = new Leader(mockDb)
-      try {
-        // Assert
-        expect(leader.db).toBe(mockDb)
-        expect(leader.options).not.toBeNull()
-        expect(leader.options.ttl).toBe(1000)
-        expect(leader.options.wait).toBe(100)
-        expect(leader.key).toMatch(/^leader-?/)
-      } finally {
-        // Cleanup
-        leader.pause()
-      }
+      // Assert
+      expect(leader.db).toBe(mockDb)
+      expect(leader.options).not.toBeNull()
+      expect(leader.options.ttl).toBe(1000)
+      expect(leader.options.wait).toBe(100)
+      expect(leader.key).toMatch(/^leader-?/)
     })
   })
   describe('initDatabase', () => {
-    it('should create collection and index', async function () {
-      // Act
+    it('should create collection and index', async () => {
+      // Arrange
       const leader = new Leader(mockDb)
+      // Act
+      await leader.initDatabase()
       try {
         // Assert
         expect(mockDb.createCollection).toHaveBeenCalled()
@@ -39,10 +36,11 @@ describe('Leader', () => {
     })
   })
   describe('isLeader', () => {
-    it('should return true if the leader is the current instance', async function () {
+    it('should return true if the leader is the current instance', async () => {
       // Arrange
       const leader = new Leader(mockDb)
       mockCollection.findOne.mockResolvedValue({ 'leader-id': leader.id })
+      await leader.start()
       try {
         // Act
         const result = await leader.isLeader()
@@ -56,9 +54,10 @@ describe('Leader', () => {
     })
   })
   describe('elect', () => {
-    it('should elect the leader', async function () {
+    it('should elect the leader', async () => {
       // Arrange
       const leader = new Leader(mockDb)
+      await leader.start()
       try {
         // Act
         await leader.elect()
@@ -71,9 +70,10 @@ describe('Leader', () => {
     })
   })
   describe('renew', () => {
-    it('should renew the leader', async function () {
+    it('should renew the leader', async () => {
       // Arrange
       const leader = new Leader(mockDb)
+      await leader.start()
       try {
         // Act
         await leader.renew()
@@ -86,9 +86,10 @@ describe('Leader', () => {
     })
   })
   describe('pause', () => {
-    it('should pause the leader', function () {
+    it('should pause the leader', async () => {
       // Arrange
       const leader = new Leader(mockDb)
+      await leader.start()
       try {
         // Act
         leader.pause()
@@ -101,19 +102,30 @@ describe('Leader', () => {
     })
   })
   describe('start', () => {
-    it('should start the leader', function () {
+    it('should start the leader', async () => {
       // Arrange
       const leader = new Leader(mockDb)
       try {
         // Act
-        leader.pause()
-        leader.resume()
+        await leader.start()
         // Assert
         expect(leader.paused).toBe(false)
       } finally {
         // Cleanup
         leader.pause()
       }
+    })
+    it('should not call initDatabase if already initiated', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      await leader.start()
+      jest.clearAllMocks()
+      // Act
+      await leader.start()
+      // Assert
+      expect(mockDb.createCollection).not.toHaveBeenCalled()
+      // Cleanup
+      leader.pause()
     })
   })
 })
