@@ -51,7 +51,7 @@ jobs:
           CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
       - name: Upload test coverage to Code Climate
-        uses: paambaati/codeclimate-action@v2.5.7
+        uses: paambaati/codeclimate-action@v5.0.0
         env:
           CC_TEST_REPORTER_ID: 9db1997362bde3d575898d4ff0eb936f0b890cca1952fb9e6d22e831e6941bb0
         with:
