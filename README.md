@@ -30,9 +30,9 @@ setInterval(() => {
 }, 100)
 ```
 
-## Upgrade from a version earlier than `1.0.142`
+## Upgrade from a version earlier than `1.1.144`
 
-Breaking changes have been made when upgrading from a version earlier than `1.0.142`. All asynchronous operations have been shifted from the constructor to a new method named `start()`, which needs to be called separately like in the example above.
+Breaking changes have been made when upgrading from a version earlier than `1.1.144`. All asynchronous operations have been shifted from the constructor to a new method named `start()`, which needs to be called separately like in the example above.
 
 ## API
 
