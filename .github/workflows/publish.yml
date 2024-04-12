@@ -24,7 +24,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           RELEASE_BRANCHES: master
-          DEFAULT_BUMP: patch
+          DEFAULT_BUMP: minor
 
       - name: Publish new version to npm
         run: |
