@@ -36,6 +36,10 @@ class Leader extends EventEmitter {
   }
 
   async isLeader() {
+    if (this.paused) return false
+    if (!this.initiated) {
+      await this.start()
+    }
     const item = await this.db
       .collection(this.key)
       .findOne({ 'leader-id': this.id })
