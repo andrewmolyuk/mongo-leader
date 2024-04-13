@@ -7,7 +7,6 @@ async function connectAndStart() {
   const client = await MongoClient.connect(url)
 
   const leader = new Leader(client.db('test'))
-  await leader.start()
 
   setInterval(async () => {
     const isLeader = await leader.isLeader()

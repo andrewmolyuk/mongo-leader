@@ -23,7 +23,7 @@ npm install mongo-leader
 const client = await MongoClient.connect(url)
 
 const leader = new Leader(client.db('test'))
-await leader.start()
+await leader.start() // Optional. If not called, a lazy start is initiated when isLeader is called for the first time.
 
 setInterval(async () => {
   const isLeader = await leader.isLeader()
@@ -57,7 +57,7 @@ This method triggers the election process. It carries out the required setup in 
 
 ### isLeader()
 
-This method is used to check if the current instance is the leader. It returns a Promise that resolves to a boolean value. `true` indicates that the current instance is the leader, and `false` indicates that it is not.
+This method checks whether the current instance is the leader or not. It returns a Promise that resolves to a boolean value. If the returned value is `true`, it means the current instance is the leader. If the returned value is `false`, it means the current instance is not the leader. If the instance has not been initialized yet, a lazy start is performed.
 
 ### pause()
 
