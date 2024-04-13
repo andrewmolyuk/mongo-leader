@@ -5,7 +5,7 @@ lint:
 @PHONY: lint
 
 test:
-	npx jest
+	npx jest --detectOpenHandles --forceExit
 @PHONY: test
 
 upgrade:
