@@ -9,6 +9,7 @@ describe('Leader', () => {
   beforeEach(() => {
     jest.clearAllMocks()
   })
+
   describe('constructor', () => {
     it('should set default options', () => {
       // Act
@@ -21,6 +22,7 @@ describe('Leader', () => {
       expect(leader.key).toMatch(/^leader-?/)
     })
   })
+
   describe('initDatabase', () => {
     it('should create collection and index if collection is not exists', async () => {
       // Arrange
@@ -52,6 +54,7 @@ describe('Leader', () => {
       leader.pause()
     })
   })
+
   describe('isLeader', () => {
     it('should return true if the leader is the current instance', async () => {
       // Arrange
@@ -66,7 +69,46 @@ describe('Leader', () => {
       // Cleanup
       leader.pause()
     })
+    it('should return false if the leader is not the current instance', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      mockCollection.findOne.mockResolvedValue({ 'leader-id': 'another-id' })
+      await leader.start()
+      // Act
+      const result = await leader.isLeader()
+      // Assert
+      expect(result).toBe(false)
+      expect(mockCollection.findOne).toHaveBeenCalled()
+      // Cleanup
+      leader.pause()
+    })
+    it('should return false if paused', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      await leader.start()
+      await leader.pause()
+      jest.clearAllMocks()
+      // Act
+      const result = await leader.isLeader()
+      // Assert
+      expect(result).toBe(false)
+      expect(mockCollection.findOne).not.toHaveBeenCalled()
+      // Cleanup
+      leader.pause()
+    })
+    it('should start if not initiated', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      jest.spyOn(leader, 'start')
+      // Act
+      await leader.isLeader()
+      // Assert
+      expect(leader.start).toHaveBeenCalled()
+      // Cleanup
+      leader.pause()
+    })
   })
+
   describe('elect', () => {
     it('should elect the leader', async () => {
       // Arrange
@@ -105,7 +147,39 @@ describe('Leader', () => {
       // Cleanup
       leader.pause()
     })
+    it('should emit elected event', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      const spy = jest.spyOn(leader, 'emit')
+      mockCollection.findOneAndUpdate.mockResolvedValue({
+        lastErrorObject: { updatedExisting: false }
+      })
+      await leader.start()
+      // Act
+      await leader.elect()
+      // Assert
+      expect(spy).toHaveBeenCalled()
+      expect(spy).toHaveBeenCalledWith('elected')
+      // Cleanup
+      leader.pause()
+    })
+    it('should not emit elected event when renewed', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      const spy = jest.spyOn(leader, 'emit')
+      mockCollection.findOneAndUpdate.mockResolvedValue({
+        lastErrorObject: { updatedExisting: true }
+      })
+      await leader.start()
+      // Act
+      await leader.elect()
+      // Assert
+      expect(spy).not.toHaveBeenCalled()
+      // Cleanup
+      leader.pause()
+    })
   })
+
   describe('renew', () => {
     it('should renew the leader', async () => {
       // Arrange
@@ -144,7 +218,39 @@ describe('Leader', () => {
       // Cleanup
       leader.pause()
     })
+    it('should emit revoked event', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      const spy = jest.spyOn(leader, 'emit')
+      mockCollection.findOneAndUpdate.mockResolvedValue({
+        lastErrorObject: { updatedExisting: false }
+      })
+      await leader.start()
+      // Act
+      await leader.renew()
+      // Assert
+      expect(spy).toHaveBeenCalled()
+      expect(spy).toHaveBeenCalledWith('revoked')
+      // Cleanup
+      leader.pause()
+    })
+    it('should emit revoked event when the leader is the current instance', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      const spy = jest.spyOn(leader, 'emit')
+      mockCollection.findOneAndUpdate.mockResolvedValue({
+        lastErrorObject: { updatedExisting: true }
+      })
+      await leader.start()
+      // Act
+      await leader.renew()
+      // Assert
+      expect(spy).not.toHaveBeenCalled()
+      // Cleanup
+      leader.pause()
+    })
   })
+
   describe('pause', () => {
     it('should pause the leader', async () => {
       // Arrange
@@ -158,6 +264,7 @@ describe('Leader', () => {
       leader.pause()
     })
   })
+
   describe('resume', () => {
     it('should resume the leader', async () => {
       // Arrange
@@ -184,6 +291,7 @@ describe('Leader', () => {
       leader.pause()
     })
   })
+
   describe('start', () => {
     it('should start the leader', async () => {
       // Arrange
