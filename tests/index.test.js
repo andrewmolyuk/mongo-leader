@@ -3,7 +3,7 @@
 const { describe, it, expect } = require('@jest/globals')
 
 const { Leader } = require('../index')
-const { mockDb, mockCollection } = require('./__mocks__/db')
+const { mockDb, mockCollection } = require('./mocks/db')
 
 describe('Leader', () => {
   beforeEach(() => {
