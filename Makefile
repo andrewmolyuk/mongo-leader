@@ -1,5 +1,9 @@
 SHELL := /bin/bash
 
+VERSION := 1.2
+BUILD := $(shell expr $(shell git describe --tag | (cut -d'.' -f3) | (cut -d'-' -f1)) + 1)
+RELEASE := v$(VERSION).$(BUILD)
+
 lint:
 	npx eslint 
 @PHONY: lint
@@ -13,3 +17,8 @@ upgrade:
 	ncu -u &&	npm install --no-fund --no-audit
 	cd example && ncu -u && npm install --no-fund --no-audit
 @PHONY: upgrade
+
+release:
+	gh release create $(RELEASE) --title 'Release $(RELEASE)' --notes-file release/$(RELEASE).md
+	git fetch --tags
+.PHONY: release
