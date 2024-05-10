@@ -19,6 +19,11 @@ upgrade:
 @PHONY: upgrade
 
 release:
+	npm version --no-git-tag-version $(RELEASE)
+	git add package.json
+	git add package-lock.json
+	git commit -m "chore(build): release $(RELEASE)"
+	git push
 	gh release create $(RELEASE) --title 'Release $(RELEASE)' --notes-file release/$(RELEASE).md
 	git fetch --tags
 .PHONY: release
