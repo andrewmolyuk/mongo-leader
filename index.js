@@ -23,7 +23,11 @@ class Leader extends EventEmitter {
 
   async initDatabase() {
     await this.db.command({ ping: 1 })
-    await this.db.admin().command({ setParameter: 1, ttlMonitorSleepSecs: 1 })
+    try {
+      await this.db.admin().command({ setParameter: 1, ttlMonitorSleepSecs: 1 })
+    } catch (_err) {
+      console.error('Error on running setParameter command on MongoDB server to enable TTL monitor sleep time to 1 second. This is not a critical error, but it may cause some performance issues.')
+    }
     const cursor = await this.db.listCollections({ name: this.key })
     const exists = await cursor.hasNext()
     const collection = exists
