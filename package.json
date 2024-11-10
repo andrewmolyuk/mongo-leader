@@ -1,6 +1,6 @@
 {
   "name": "mongo-leader",
-  "version": "1.2.151",
+  "version": "1.2.152",
   "description": "Leader election backed by MongoDB",
   "main": "index.js",
   "repository": {
