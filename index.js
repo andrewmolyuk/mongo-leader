@@ -67,7 +67,7 @@ class Leader extends EventEmitter {
       .findOneAndUpdate(
         {},
         { $setOnInsert: { 'leader-id': this.id, createdAt: new Date() } },
-        { upsert: true, returnOriginal: false }
+        { upsert: true, returnOriginal: false, includeResultMetadata: true }
       )
     if (result?.lastErrorObject?.updatedExisting) {
       setTimeout(() => this.elect(), this.options.wait)
@@ -80,12 +80,12 @@ class Leader extends EventEmitter {
   async renew() {
     if (this.paused) return
     const result = await this.db
-      .collection(this.key)
-      .findOneAndUpdate(
-        { 'leader-id': this.id },
-        { $set: { 'leader-id': this.id, createdAt: new Date() } },
-        { upsert: false, returnOriginal: false }
-      )
+        .collection(this.key)
+        .findOneAndUpdate(
+            { 'leader-id': this.id },
+            { $set: { 'leader-id': this.id, createdAt: new Date() } },
+            { upsert: false, returnOriginal: false, includeResultMetadata: true }
+        )
     if (result?.lastErrorObject?.updatedExisting) {
       setTimeout(() => this.renew(), this.options.ttl / 2)
     } else {
