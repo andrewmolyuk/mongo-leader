@@ -6,6 +6,7 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Coverage/3b010767baf5402b90ce45239a11d977)](https://app.codacy.com/gh/andrewmolyuk/mongo-leader/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)[![Maintainability](https://img.shields.io/codeclimate/maintainability/andrewmolyuk/mongo-leader)](https://codeclimate.com/github/andrewmolyuk/mongo-leader/maintainability)
 [![NPM](https://img.shields.io/npm/v/mongo-leader.svg?style=flat)](http://npm.im/mongo-leader)
 [![NPM downloads](http://img.shields.io/npm/dw/mongo-leader.svg?style=flat)](http://npm.im/mongo-leader)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fandrewmolyuk%2Fmongo-leader.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fandrewmolyuk%2Fmongo-leader?ref=badge_shield)
 
 `mongo-leader` is a Node.js package for leader election backed by MongoDB. It is inspired by the [redis-leader](https://github.com/pierreinglebert/redis-leader) library. The main class `Leader` extends the Node.js [EventEmmiter](https://nodejs.org/api/events.html#events_class_eventemitter) class, allowing instances to emit events when they gain or lose leadership status. This makes it a powerful tool for managing distributed systems where only one instance should be in control at any given time.
 
@@ -84,3 +85,6 @@ The `revoked` event is emitted when the instance loses its leadership status. Th
 ## License
 
 This project is licensed under the [MIT License](https://github.com/andrewmolyuk/mongo-leader/blob/master/LICENSE).
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fandrewmolyuk%2Fmongo-leader.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fandrewmolyuk%2Fmongo-leader?ref=badge_large)
