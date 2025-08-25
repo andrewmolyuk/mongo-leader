@@ -12,6 +12,8 @@ class Leader extends EventEmitter {
     this.options.wait = Math.max(options.wait || 0, 100) // Time between tries to be elected
     this.paused = false
     this.initiated = false
+    this.electTimeout = null
+    this.renewTimeout = null
 
     const hash = crypto
       .createHash('sha1')
@@ -70,10 +72,10 @@ class Leader extends EventEmitter {
         { upsert: true, returnOriginal: false, includeResultMetadata: true }
       )
     if (result?.lastErrorObject?.updatedExisting) {
-      setTimeout(() => this.elect(), this.options.wait)
+      this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
     } else {
       this.emit('elected')
-      setTimeout(() => this.renew(), this.options.ttl / 2)
+      this.renewTimeout = setTimeout(() => this.renew(), this.options.ttl / 2)
     }
   }
 
@@ -87,15 +89,25 @@ class Leader extends EventEmitter {
             { upsert: false, returnOriginal: false, includeResultMetadata: true }
         )
     if (result?.lastErrorObject?.updatedExisting) {
-      setTimeout(() => this.renew(), this.options.ttl / 2)
+      this.renewTimeout = setTimeout(() => this.renew(), this.options.ttl / 2)
     } else {
       this.emit('revoked')
-      setTimeout(() => this.elect(), this.options.wait)
+      this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
     }
   }
 
   pause() {
-    if (!this.paused) this.paused = true
+    if (!this.paused) {
+      this.paused = true
+      if (this.electTimeout) {
+        clearTimeout(this.electTimeout)
+        this.electTimeout = null
+      }
+      if (this.renewTimeout) {
+        clearTimeout(this.renewTimeout)
+        this.renewTimeout = null
+      }
+    }
   }
 
   async resume() {
@@ -103,6 +115,11 @@ class Leader extends EventEmitter {
       this.paused = false
       await this.elect()
     }
+  }
+
+  stop() {
+    this.pause()
+    this.removeAllListeners()
   }
 }
 

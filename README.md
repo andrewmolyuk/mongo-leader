@@ -1,6 +1,6 @@
 # mongo-leader
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/andrewmolyuk/mongo-leader/ci.yml)](https://github.com/andrewmolyuk/mongo-leader/actions/workflows/ci.yml)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/andrewmolyuk/mongo-leader/build.yml)](https://github.com/andrewmolyuk/mongo-leader/actions/workflows/build.yml)
 [![Dependencies Status](https://badges.depfu.com/badges/0ef074dc6382d73db38b144ba8a1b938/overview.svg)](https://depfu.com/github/andrewmolyuk/mongo-leader?project_id=40081)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/3b010767baf5402b90ce45239a11d977)](https://app.codacy.com/gh/andrewmolyuk/mongo-leader/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 [![Codacy Badge](https://app.codacy.com/project/badge/Coverage/3b010767baf5402b90ce45239a11d977)](https://app.codacy.com/gh/andrewmolyuk/mongo-leader/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)[![Maintainability](https://img.shields.io/codeclimate/maintainability/andrewmolyuk/mongo-leader)](https://codeclimate.com/github/andrewmolyuk/mongo-leader/maintainability)
@@ -70,6 +70,12 @@ This method is used to pause the leader election process. When called, the insta
 This method is used to resume the leader election process. When called, the instance will start trying to become a leader again. This can be useful in scenarios where you have previously paused the leader election process and now want to allow your instance to become a leader again.
 
 > Note: The `resume()` method does not make the instance become a leader immediately. It simply allows the instance to start attempting to become a leader again.
+
+### stop()
+
+This method is used to completely stop the leader election process and clean up resources. When called, the instance will be paused, all pending timeouts will be cleared, and all event listeners will be removed. This method should be called when the Leader instance is no longer needed to prevent memory leaks.
+
+> Note: After calling `stop()`, the instance should not be used again. Create a new Leader instance if needed.
 
 ## Events
 

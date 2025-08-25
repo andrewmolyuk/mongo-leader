@@ -263,6 +263,19 @@ describe('Leader', () => {
       // Cleanup
       leader.pause()
     })
+    it('should clear timeouts when paused', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      await leader.start()
+      leader.electTimeout = setTimeout(() => {}, 1000)
+      leader.renewTimeout = setTimeout(() => {}, 1000)
+      // Act
+      leader.pause()
+      // Assert
+      expect(leader.paused).toBe(true)
+      expect(leader.electTimeout).toBe(null)
+      expect(leader.renewTimeout).toBe(null)
+    })
   })
 
   describe('resume', () => {
@@ -314,6 +327,20 @@ describe('Leader', () => {
       expect(mockDb.createCollection).not.toHaveBeenCalled()
       // Cleanup
       leader.pause()
+    })
+  })
+
+  describe('stop', () => {
+    it('should pause the leader and remove all listeners', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      await leader.start()
+      const spy = jest.spyOn(leader, 'removeAllListeners')
+      // Act
+      leader.stop()
+      // Assert
+      expect(leader.paused).toBe(true)
+      expect(spy).toHaveBeenCalled()
     })
   })
 })
