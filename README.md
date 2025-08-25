@@ -107,6 +107,19 @@ The `elected` event is emitted when the instance successfully becomes a leader. 
 
 The `revoked` event is emitted when the instance loses its leadership status. This event can be listened to in order to perform actions when the instance is no longer the leader. For example, you might want to stop certain tasks or services when the instance has been revoked from being the leader.
 
+### error
+
+The `error` event is emitted when database operations fail during the election or renewal process. This includes MongoDB connection failures, timeout errors, or any other database-related issues. The leader election process will automatically retry after emitting this event, but applications should handle these errors appropriately.
+
+```javascript
+leader.on('error', (error) => {
+  console.error('Leader election error:', error.message)
+  // Handle error (e.g., log, alert, etc.)
+})
+```
+
+> **Note**: During renewal failures, both `error` and `revoked` events will be emitted, as the instance assumes it has lost leadership and attempts to re-elect itself.
+
 ## License
 
 This project is licensed under the [MIT License](https://github.com/andrewmolyuk/mongo-leader/blob/master/LICENSE).

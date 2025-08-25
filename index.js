@@ -105,33 +105,48 @@ class Leader extends EventEmitter {
 
   async elect() {
     if (this.paused) return
-    const result = await this.db
-      .collection(this.key)
-      .findOneAndUpdate(
-        {},
-        { $setOnInsert: { 'leader-id': this.id, createdAt: new Date() } },
-        { upsert: true, returnOriginal: false, includeResultMetadata: true }
-      )
-    if (result?.lastErrorObject?.updatedExisting) {
+    
+    try {
+      const result = await this.db
+        .collection(this.key)
+        .findOneAndUpdate(
+          {},
+          { $setOnInsert: { 'leader-id': this.id, createdAt: new Date() } },
+          { upsert: true, returnOriginal: false, includeResultMetadata: true }
+        )
+      if (result?.lastErrorObject?.updatedExisting) {
+        this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
+      } else {
+        this.emit('elected')
+        this.renewTimeout = setTimeout(() => this.renew(), this.options.ttl / 2)
+      }
+    } catch (error) {
+      this.emit('error', error)
+      // Retry election after wait period
       this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
-    } else {
-      this.emit('elected')
-      this.renewTimeout = setTimeout(() => this.renew(), this.options.ttl / 2)
     }
   }
 
   async renew() {
     if (this.paused) return
-    const result = await this.db
-        .collection(this.key)
-        .findOneAndUpdate(
-            { 'leader-id': this.id },
-            { $set: { 'leader-id': this.id, createdAt: new Date() } },
-            { upsert: false, returnOriginal: false, includeResultMetadata: true }
-        )
-    if (result?.lastErrorObject?.updatedExisting) {
-      this.renewTimeout = setTimeout(() => this.renew(), this.options.ttl / 2)
-    } else {
+    
+    try {
+      const result = await this.db
+          .collection(this.key)
+          .findOneAndUpdate(
+              { 'leader-id': this.id },
+              { $set: { 'leader-id': this.id, createdAt: new Date() } },
+              { upsert: false, returnOriginal: false, includeResultMetadata: true }
+          )
+      if (result?.lastErrorObject?.updatedExisting) {
+        this.renewTimeout = setTimeout(() => this.renew(), this.options.ttl / 2)
+      } else {
+        this.emit('revoked')
+        this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
+      }
+    } catch (error) {
+      this.emit('error', error)
+      // Assume leadership is lost and try to re-elect
       this.emit('revoked')
       this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
     }

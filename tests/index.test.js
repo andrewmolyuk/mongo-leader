@@ -223,6 +223,30 @@ describe('Leader', () => {
       // Cleanup
       leader.pause()
     })
+    it('should handle database errors during election', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      const errorSpy = jest.spyOn(leader, 'emit')
+      const dbError = new Error('Database connection failed')
+      
+      // Set up error listener to prevent unhandled error
+      leader.on('error', () => {}) // Consume error events
+      
+      await leader.start()
+      jest.clearAllMocks()
+      
+      // Configure mock to reject only for this test
+      mockCollection.findOneAndUpdate.mockRejectedValueOnce(dbError)
+      
+      // Act
+      await leader.elect()
+      
+      // Assert
+      expect(errorSpy).toHaveBeenCalledWith('error', dbError)
+      
+      // Cleanup
+      leader.stop()
+    })
   })
 
   describe('renew', () => {
@@ -293,6 +317,31 @@ describe('Leader', () => {
       expect(spy).not.toHaveBeenCalled()
       // Cleanup
       leader.pause()
+    })
+    it('should handle database errors during renewal', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      const errorSpy = jest.spyOn(leader, 'emit')
+      const dbError = new Error('Database connection failed')
+      
+      // Set up error listener to prevent unhandled error
+      leader.on('error', () => {}) // Consume error events
+      
+      await leader.start()
+      jest.clearAllMocks()
+      
+      // Configure mock to reject for this test
+      mockCollection.findOneAndUpdate.mockRejectedValueOnce(dbError)
+      
+      // Act
+      await leader.renew()
+      
+      // Assert
+      expect(errorSpy).toHaveBeenCalledWith('error', dbError)
+      expect(errorSpy).toHaveBeenCalledWith('revoked')
+      
+      // Cleanup
+      leader.stop()
     })
   })
 
