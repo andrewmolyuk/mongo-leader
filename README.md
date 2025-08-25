@@ -32,6 +32,14 @@ setInterval(async () => {
 }, 100)
 ```
 
+## Examples
+
+For more detailed examples, check out the [`example/`](./example/) directory which contains:
+
+- **`minimal.js`** - Ultra-minimal polling example (12 lines)
+- **`simple.js`** - Basic event-driven example with leader/follower events (20 lines)  
+- **`example.js`** - Production-ready example with comprehensive error handling and graceful shutdown
+
 ## Upgrade from a version earlier than `1.1.144`
 
 Breaking changes have been made when upgrading from a version earlier than `1.1.144`. All asynchronous operations have been shifted from the constructor to a new method named `start()`, which needs to be called separately like in the example above.

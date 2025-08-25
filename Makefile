@@ -13,9 +13,6 @@ test: lint
 update:
 	npx npm-check-updates -u
 	npm install --no-fund --no-audit
-	cd example
-	npx npm-check-updates -u
-	npm install --no-fund --no-audit
 
 release: test
 	@if gh auth status >/dev/null 2>&1; then \
