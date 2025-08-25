@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.4.0](https://github.com/andrewmolyuk/mongo-leader/compare/v1.3.1...v1.4.0) (2025-08-25)
+
+
+### Features
+
+* enhance example scripts with comprehensive leader election handling and monitoring ([102e9f9](https://github.com/andrewmolyuk/mongo-leader/commit/102e9f92b87fe907d6227dba46f49e77825585fa))
+
+
+### Bug Fixes
+
+* format README badges for better readability ([663c617](https://github.com/andrewmolyuk/mongo-leader/commit/663c6174dcfddfa9d33654819bdb491ad6426a42))
+* update maintainability badge link in README ([63b44be](https://github.com/andrewmolyuk/mongo-leader/commit/63b44bef58c94b21c19fcfebef973ede9f765a81))
+
 ### [1.3.1](https://github.com/andrewmolyuk/mongo-leader/compare/v1.3.0...v1.3.1) (2025-08-25)
 
 
