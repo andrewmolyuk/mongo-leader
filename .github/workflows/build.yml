@@ -20,15 +20,20 @@ jobs:
           cache: 'npm'
       - run: npm install
 
+      - name: Run tests
+        run: make test
+
       - name: Upload test coverage to Codacy
         run: bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l JavaScript -r coverage/lcov.info
         env:
           CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        continue-on-error: true
 
       - name: Upload test coverage to Code Climate
         uses: paambaati/codeclimate-action@v9.0.0
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
         with:
-          coverageCommand: make test
+          coverageCommand: echo "Coverage already generated"
           coverageLocations: coverage/lcov.info:lcov
+        continue-on-error: true
