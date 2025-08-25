@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.3.1](https://github.com/andrewmolyuk/mongo-leader/compare/v1.3.0...v1.3.1) (2025-08-25)
+
+
+### Bug Fixes
+
+* update branch references from main to master in build workflow ([35b160f](https://github.com/andrewmolyuk/mongo-leader/commit/35b160fd9a9833e818cc739cee19e4b5a52e8eb3))
+* update build workflow to run tests and adjust coverage command ([45c3393](https://github.com/andrewmolyuk/mongo-leader/commit/45c3393786df5d4381e7c575f26ac7db60c4e964))
+* update test command in publish workflow from npm test to make test ([02d761c](https://github.com/andrewmolyuk/mongo-leader/commit/02d761c2ed667687b3773c9152ff6a7076919f6c))
+
 ## [1.3.0](https://github.com/andrewmolyuk/mongo-leader/compare/v1.2.152...v1.3.0) (2025-08-25)
 
 
