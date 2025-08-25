@@ -1,29 +1,28 @@
-SHELL := /bin/bash
+@PHONY: lint install test update release
 
-VERSION := 1.2
-BUILD := $(shell expr $(shell git describe --tag | (cut -d'.' -f3) | (cut -d'-' -f1)) + 1)
-RELEASE := v$(VERSION).$(BUILD)
+install:
+	npm install
 
 lint:
-	npx eslint 
-@PHONY: lint
+	npx eslint . --fix
+	npx markdownlint README.md --fix
 
-test:
+test: lint
 	npx jest --detectOpenHandles --forceExit
-@PHONY: test
 
-upgrade:
-	npm -g ls npm-check-updates | grep -c npm-check-updates || npm install -g npm-check-updates
-	ncu -u &&	npm install --no-fund --no-audit
-	cd example && ncu -u && npm install --no-fund --no-audit
-@PHONY: upgrade
+update:
+	npx npm-check-updates -u
+	npm install --no-fund --no-audit
+	cd example
+	npx npm-check-updates -u
+	npm install --no-fund --no-audit
 
-release:
-	npm version --no-git-tag-version $(RELEASE)
-	git add package.json
-	git add package-lock.json
-	git commit -m "chore(build): release $(RELEASE)"
-	git push
-	gh release create $(RELEASE) --title 'Release $(RELEASE)' --notes-file release/$(RELEASE).md
-	git fetch --tags
-.PHONY: release
+release: test
+	@if gh auth status >/dev/null 2>&1; then \
+		npx standard-version; \
+		git push --follow-tags; \
+		gh release create $$(git describe --tags --abbrev=0) --notes-file CHANGELOG.md; \
+	else \
+		echo "GitHub CLI not authenticated. Run 'gh auth login' to create releases automatically."; \
+		echo "You can manually create a release at: https://github.com/andrewmolyuk/eslint-plugin-vue-modular/releases/new"; \
+	fi

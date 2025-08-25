@@ -26,7 +26,11 @@
   },
   "homepage": "https://github.com/andrewmolyuk/mongo-leader#readme",
   "devDependencies": {
-    "eslint": "^9.32.0",
-    "jest": "^30.0.5"
+    "eslint": "^9.34.0",
+    "jest": "^30.0.5",
+    "markdownlint": "^0.38.0",
+    "markdownlint-cli": "^0.45.0",
+    "npm-check-updates": "^18.0.2",
+    "standard-version": "^9.5.0"
   }
 }
