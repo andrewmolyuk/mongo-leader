@@ -3,7 +3,8 @@
 [![Build Status](https://img.shields.io/github/actions/workflow/status/andrewmolyuk/mongo-leader/build.yml)](https://github.com/andrewmolyuk/mongo-leader/actions/workflows/build.yml)
 [![Dependencies Status](https://badges.depfu.com/badges/0ef074dc6382d73db38b144ba8a1b938/overview.svg)](https://depfu.com/github/andrewmolyuk/mongo-leader?project_id=40081)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/3b010767baf5402b90ce45239a11d977)](https://app.codacy.com/gh/andrewmolyuk/mongo-leader/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
-[![Codacy Badge](https://app.codacy.com/project/badge/Coverage/3b010767baf5402b90ce45239a11d977)](https://app.codacy.com/gh/andrewmolyuk/mongo-leader/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)[![Maintainability](https://img.shields.io/codeclimate/maintainability/andrewmolyuk/mongo-leader)](https://codeclimate.com/github/andrewmolyuk/mongo-leader/maintainability)
+[![Codacy Badge](https://app.codacy.com/project/badge/Coverage/3b010767baf5402b90ce45239a11d977)](https://app.codacy.com/gh/andrewmolyuk/mongo-leader/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage)
+[![Maintainability](https://img.shields.io/codeclimate/maintainability/andrewmolyuk/mongo-leader)](https://codeclimate.com/github/andrewmolyuk/mongo-leader/maintainability)
 [![NPM](https://img.shields.io/npm/v/mongo-leader.svg?style=flat)](http://npm.im/mongo-leader)
 [![NPM downloads](http://img.shields.io/npm/dw/mongo-leader.svg?style=flat)](http://npm.im/mongo-leader)
 
@@ -123,3 +124,5 @@ leader.on('error', (error) => {
 ## License
 
 This project is licensed under the [MIT License](https://github.com/andrewmolyuk/mongo-leader/blob/master/LICENSE).
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fandrewmolyuk%2Fmongo-leader.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fandrewmolyuk%2Fmongo-leader?ref=badge_shield)
