@@ -8,10 +8,28 @@ class Leader extends EventEmitter {
     this.id = crypto.randomBytes(32).toString('hex')
     this.db = db
     this.options = {}
-    this.options.ttl = Math.max(options.ttl || 0, 1000) // Lock time to live
-    this.options.wait = Math.max(options.wait || 0, 100) // Time between tries to be elected
+    
+    // Set minimum values
+    const ttl = Math.max(options.ttl || 0, 1000) // Lock time to live
+    const wait = Math.max(options.wait || 0, 100) // Time between tries to be elected
+    
+    // Validate TTL vs wait relationship
+    // TTL should be at least 4x the wait time to ensure proper renewal
+    // Renewal happens at ttl/2, so we need ttl/2 > wait * 2 for safety margin
+    const minTtlForWait = wait * 4
+    if (ttl < minTtlForWait) {
+      throw new Error(
+        `TTL (${ttl}ms) is too short relative to wait time (${wait}ms). ` +
+        `TTL should be at least ${minTtlForWait}ms (4x the wait time) to ensure reliable leader renewal.`
+      )
+    }
+    
+    this.options.ttl = ttl
+    this.options.wait = wait
     this.paused = false
     this.initiated = false
+    this.starting = false
+    this.startPromise = null
     this.electTimeout = null
     this.renewTimeout = null
 
@@ -55,10 +73,33 @@ class Leader extends EventEmitter {
   }
 
   async start() {
+    // If already initiated, return immediately
+    if (this.initiated) {
+      return
+    }
+    
+    // If currently starting, return the existing promise
+    if (this.starting && this.startPromise) {
+      return this.startPromise
+    }
+    
+    // Mark as starting and create the start promise
+    this.starting = true
+    this.startPromise = this._doStart()
+    
+    try {
+      await this.startPromise
+    } finally {
+      this.starting = false
+      this.startPromise = null
+    }
+  }
+
+  async _doStart() {
     if (!this.initiated) {
-      this.initiated = true
       await this.initDatabase()
       await this.elect()
+      this.initiated = true
     }
   }
 
@@ -120,6 +161,9 @@ class Leader extends EventEmitter {
   stop() {
     this.pause()
     this.removeAllListeners()
+    this.initiated = false
+    this.starting = false
+    this.startPromise = null
   }
 }
 

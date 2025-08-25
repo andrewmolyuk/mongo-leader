@@ -45,15 +45,35 @@ Creates a new Leader instance.
 
 - `db`: A MongoClient object.
 - `options`: An object with the following properties:
-  - `ttl`: Lock time to live in milliseconds. The lock will be automatically released after this time. Default and minimum values are 1000.
+  - `ttl`: Lock time to live in milliseconds. The lock will be automatically released after this time. Default and minimum values are 1000. Must be at least 4 times the `wait` value to ensure reliable leader renewal.
   - `wait`: Time between tries getting elected in milliseconds. Default and minimum values are 100.
   - `key`: Unique identifier for the group of instances trying to be elected as leader. Default value is 'default'.
+
+> **Important**: The `ttl` value must be at least 4 times the `wait` value. This ensures that the leader renewal (which happens at `ttl/2`) has sufficient time to complete before the lock expires. For example, if `wait` is 500ms, then `ttl` must be at least 2000ms. The constructor will throw an error if this relationship is violated.
+
+#### Validation Errors
+
+The constructor performs validation on the options and will throw an error in the following cases:
+
+- **Invalid TTL/Wait Ratio**: If `ttl < wait * 4`, an error will be thrown explaining the minimum required TTL value.
+
+```javascript
+// This will throw an error
+const leader = new Leader(db, { ttl: 2000, wait: 1000 }) 
+// Error: TTL (2000ms) is too short relative to wait time (1000ms). 
+// TTL should be at least 4000ms (4x the wait time) to ensure reliable leader renewal.
+
+// This is valid
+const leader = new Leader(db, { ttl: 4000, wait: 1000 }) 
+```
 
 When the `Leader` constructor is invoked, it immediately initiates the election process to become the leader. This means that as soon as a `Leader` instance is created, it starts competing with other instances (if any) to gain the leadership role. This is done by attempting to acquire a lock in the MongoDB collection. If the lock is successfully acquired, the instance becomes the leader. The lock has a time-to-live (TTL) associated with it, after which it is automatically released. This allows for a continuous and dynamic leadership election process where leadership can change over time, especially in scenarios where the current leader instance becomes unavailable or is shut down.
 
 ### start()
 
-This method triggers the election process. It carries out the required setup in database and kick-starts the election procedure.
+This method triggers the election process. It carries out the required setup in database and kick-starts the election procedure. The method is thread-safe and can be called multiple times concurrently - subsequent calls will wait for the first call to complete rather than running the initialization multiple times.
+
+> Note: If the instance is already initiated, this method returns immediately without performing any operations.
 
 ### isLeader()
 

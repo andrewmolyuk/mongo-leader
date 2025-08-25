@@ -21,6 +21,51 @@ describe('Leader', () => {
       expect(leader.options.wait).toBe(100)
       expect(leader.key).toMatch(/^leader-?/)
     })
+    
+    it('should accept valid ttl and wait options', () => {
+      // Act
+      const leader = new Leader(mockDb, { ttl: 8000, wait: 2000 })
+      // Assert
+      expect(leader.options.ttl).toBe(8000)
+      expect(leader.options.wait).toBe(2000)
+    })
+    
+    it('should enforce minimum values for ttl and wait', () => {
+      // Act
+      const leader = new Leader(mockDb, { ttl: 500, wait: 50 })
+      // Assert
+      expect(leader.options.ttl).toBe(1000) // minimum ttl
+      expect(leader.options.wait).toBe(100) // minimum wait
+    })
+    
+    it('should throw error when ttl is too short relative to wait time', () => {
+      // Act & Assert
+      expect(() => {
+        new Leader(mockDb, { ttl: 2000, wait: 1000 }) // ttl < wait * 4
+      }).toThrow('TTL (2000ms) is too short relative to wait time (1000ms). TTL should be at least 4000ms (4x the wait time) to ensure reliable leader renewal.')
+    })
+    
+    it('should throw error when default ttl conflicts with large wait time', () => {
+      // Act & Assert
+      expect(() => {
+        new Leader(mockDb, { wait: 500 }) // default ttl 1000 < wait 500 * 4
+      }).toThrow('TTL (1000ms) is too short relative to wait time (500ms). TTL should be at least 2000ms (4x the wait time) to ensure reliable leader renewal.')
+    })
+    
+    it('should accept ttl exactly 4x the wait time', () => {
+      // Act
+      const leader = new Leader(mockDb, { ttl: 4000, wait: 1000 })
+      // Assert
+      expect(leader.options.ttl).toBe(4000)
+      expect(leader.options.wait).toBe(1000)
+    })
+    
+    it('should work with default values', () => {
+      // Act & Assert - should not throw
+      expect(() => {
+        new Leader(mockDb) // ttl: 1000, wait: 100 - ratio is 10:1, satisfies 4:1 requirement
+      }).not.toThrow()
+    })
   })
 
   describe('initDatabase', () => {
@@ -67,7 +112,7 @@ describe('Leader', () => {
       expect(result).toBe(true)
       expect(mockCollection.findOne).toHaveBeenCalled()
       // Cleanup
-      leader.pause()
+      leader.stop()
     })
     it('should return false if the leader is not the current instance', async () => {
       // Arrange
@@ -313,8 +358,9 @@ describe('Leader', () => {
       await leader.start()
       // Assert
       expect(leader.paused).toBe(false)
+      expect(leader.initiated).toBe(true)
       // Cleanup
-      leader.pause()
+      leader.stop()
     })
     it('should not call initDatabase if already initiated', async () => {
       // Arrange
@@ -326,7 +372,65 @@ describe('Leader', () => {
       // Assert
       expect(mockDb.createCollection).not.toHaveBeenCalled()
       // Cleanup
-      leader.pause()
+      leader.stop()
+    })
+    it('should handle concurrent start calls', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      const initDatabaseSpy = jest.spyOn(leader, 'initDatabase')
+      
+      // Act - call start multiple times concurrently
+      const promises = [
+        leader.start(),
+        leader.start(),
+        leader.start()
+      ]
+      await Promise.all(promises)
+      
+      // Assert - initDatabase should only be called once
+      expect(initDatabaseSpy).toHaveBeenCalledTimes(1)
+      expect(leader.initiated).toBe(true)
+      
+      // Cleanup
+      leader.stop()
+    })
+    it('should handle errors during concurrent start calls', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      const error = new Error('Database connection failed')
+      mockDb.command.mockRejectedValueOnce(error)
+      
+      // Act & Assert - all concurrent calls should reject with the same error
+      const promises = [
+        leader.start(),
+        leader.start(),
+        leader.start()
+      ]
+      
+      await expect(Promise.all(promises)).rejects.toThrow('Database connection failed')
+      expect(leader.initiated).toBe(false)
+      expect(leader.starting).toBe(false)
+      expect(leader.startPromise).toBe(null)
+      
+      // Cleanup
+      leader.stop()
+    })
+    it('should return immediately if already initiated', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      await leader.start()
+      const initDatabaseSpy = jest.spyOn(leader, 'initDatabase')
+      jest.clearAllMocks()
+      
+      // Act
+      await leader.start()
+      
+      // Assert
+      expect(initDatabaseSpy).not.toHaveBeenCalled()
+      expect(mockDb.createCollection).not.toHaveBeenCalled()
+      
+      // Cleanup
+      leader.stop()
     })
   })
 
@@ -340,7 +444,32 @@ describe('Leader', () => {
       leader.stop()
       // Assert
       expect(leader.paused).toBe(true)
+      expect(leader.initiated).toBe(false)
+      expect(leader.starting).toBe(false)
+      expect(leader.startPromise).toBe(null)
       expect(spy).toHaveBeenCalled()
+    })
+    it('should allow restart after stop', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      await leader.start()
+      leader.stop()
+      
+      // Reset the mock to simulate a fresh start
+      mockDb.listCollections.mockResolvedValue({
+        hasNext: () => Promise.resolve(false)
+      })
+      jest.clearAllMocks()
+      
+      // Act
+      await leader.start()
+      
+      // Assert
+      expect(leader.initiated).toBe(true)
+      expect(mockDb.createCollection).toHaveBeenCalled()
+      
+      // Cleanup
+      leader.stop()
     })
   })
 })
