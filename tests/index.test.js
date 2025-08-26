@@ -98,6 +98,85 @@ describe('Leader', () => {
       // Cleanup
       leader.pause()
     })
+
+    it('should handle IndexOptionsConflict when TTL changes', async () => {
+      // Arrange
+      const leader = new Leader(mockDb, { ttl: 5000, wait: 1000 })
+      const indexOptionsError = new Error('An equivalent index already exists with the same name but different options')
+      indexOptionsError.code = 85
+      
+      // Mock the index creation to throw IndexOptionsConflict first
+      mockCollection.createIndex.mockRejectedValueOnce(indexOptionsError)
+      
+      // Mock listIndexes to return existing index with different TTL
+      mockCollection.listIndexes.mockReturnValueOnce({
+        toArray: () => Promise.resolve([
+          { name: 'createdAt_1', expireAfterSeconds: 1 } // old TTL value
+        ])
+      })
+      
+      // Mock dropIndex to succeed
+      mockCollection.dropIndex.mockResolvedValueOnce()
+      
+      // Mock the second createIndex call to succeed
+      mockCollection.createIndex.mockResolvedValueOnce()
+      
+      // Act
+      await leader.initDatabase()
+      
+      // Assert
+      expect(mockCollection.createIndex).toHaveBeenCalledTimes(2) // first fails, second succeeds
+      expect(mockCollection.listIndexes).toHaveBeenCalled()
+      expect(mockCollection.dropIndex).toHaveBeenCalledWith('createdAt_1')
+      expect(mockCollection.createIndex).toHaveBeenLastCalledWith(
+        { createdAt: 1 },
+        { expireAfterSeconds: 5, background: true }
+      )
+      
+      // Cleanup
+      leader.pause()
+    })
+
+    it('should handle IndexOptionsConflict when TTL is the same', async () => {
+      // Arrange
+      const leader = new Leader(mockDb, { ttl: 5000, wait: 1000 })
+      const indexOptionsError = new Error('An equivalent index already exists with the same name but different options')
+      indexOptionsError.code = 85
+      
+      // Mock the index creation to throw IndexOptionsConflict
+      mockCollection.createIndex.mockRejectedValueOnce(indexOptionsError)
+      
+      // Mock listIndexes to return existing index with same TTL
+      mockCollection.listIndexes.mockReturnValueOnce({
+        toArray: () => Promise.resolve([
+          { name: 'createdAt_1', expireAfterSeconds: 5 } // same TTL value
+        ])
+      })
+      
+      // Act
+      await leader.initDatabase()
+      
+      // Assert
+      expect(mockCollection.createIndex).toHaveBeenCalledTimes(1) // only first call
+      expect(mockCollection.listIndexes).toHaveBeenCalled()
+      expect(mockCollection.dropIndex).not.toHaveBeenCalled() // should not drop if TTL is same
+      
+      // Cleanup
+      leader.pause()
+    })
+
+    it('should rethrow non-IndexOptionsConflict errors', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      const otherError = new Error('Some other database error')
+      mockCollection.createIndex.mockRejectedValueOnce(otherError)
+      
+      // Act & Assert
+      await expect(leader.initDatabase()).rejects.toThrow('Some other database error')
+      
+      // Cleanup
+      leader.pause()
+    })
   })
 
   describe('isLeader', () => {

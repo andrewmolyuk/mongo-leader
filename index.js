@@ -55,10 +55,39 @@ class Leader extends EventEmitter {
     const collection = exists
       ? this.db.collection(this.key)
       : await this.db.createCollection(this.key)
-    await collection.createIndex(
-      { createdAt: 1 },
-      { expireAfterSeconds: this.options.ttl / 1000, background: true }
-    )
+    
+    const expectedTtl = this.options.ttl / 1000
+    try {
+      await collection.createIndex(
+        { createdAt: 1 },
+        { expireAfterSeconds: expectedTtl, background: true }
+      )
+    } catch (error) {
+      // Handle IndexOptionsConflict when TTL has changed
+      if (error.code === 85 || error.message.includes('IndexOptionsConflict') || 
+          error.message.includes('An equivalent index already exists with the same name but different options')) {
+        try {
+          // Get existing index information
+          const indexes = await collection.listIndexes().toArray()
+          const existingIndex = indexes.find(idx => idx.name === 'createdAt_1')
+          
+          if (existingIndex && existingIndex.expireAfterSeconds !== expectedTtl) {
+            // Drop the existing index and recreate with new TTL
+            await collection.dropIndex('createdAt_1')
+            await collection.createIndex(
+              { createdAt: 1 },
+              { expireAfterSeconds: expectedTtl, background: true }
+            )
+          }
+        } catch {
+          // If we can't drop and recreate, throw the original error
+          throw error
+        }
+      } else {
+        // If it's not an IndexOptionsConflict, re-throw the original error
+        throw error
+      }
+    }
   }
 
   async isLeader() {

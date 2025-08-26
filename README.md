@@ -40,6 +40,45 @@ For more detailed examples, check out the [`example/`](./example/) directory whi
 - **`simple.js`** - Basic event-driven example with leader/follower events (20 lines)  
 - **`example.js`** - Production-ready example with comprehensive error handling and graceful shutdown
 
+## Configuration Changes
+
+### TTL Value Changes
+
+Starting from version 1.4.1, `mongo-leader` gracefully handles TTL (time-to-live) configuration changes between application restarts. Previously, changing the `ttl` option would cause an `IndexOptionsConflict` error when MongoDB attempted to create a TTL index with different expiration settings.
+
+**Before (versions < 1.4.1):**
+
+```javascript
+// First run
+const leader1 = new Leader(db, { ttl: 1000, wait: 100 })
+await leader1.start() // Creates TTL index with 1 second expiration
+
+// Second run (application restart with different TTL)
+const leader2 = new Leader(db, { ttl: 5000, wait: 1000 })
+await leader2.start() // Would throw IndexOptionsConflict error
+```
+
+**After (versions >= 1.4.1):**
+
+```javascript
+// First run
+const leader1 = new Leader(db, { ttl: 1000, wait: 100 })
+await leader1.start() // Creates TTL index with 1 second expiration
+
+// Second run (application restart with different TTL)
+const leader2 = new Leader(db, { ttl: 5000, wait: 1000 })
+await leader2.start() // ✅ Works! Automatically updates the TTL index
+```
+
+The library now automatically detects TTL changes and safely updates the MongoDB TTL index by:
+
+1. Detecting the `IndexOptionsConflict` error
+2. Comparing the existing TTL value with the requested TTL value
+3. Dropping and recreating the index with the new TTL value if they differ
+4. Gracefully handling any errors during this process
+
+This enhancement allows for dynamic TTL adjustments in production environments without requiring manual database intervention.
+
 ## Upgrade from a version earlier than `1.1.144`
 
 Breaking changes have been made when upgrading from a version earlier than `1.1.144`. All asynchronous operations have been shifted from the constructor to a new method named `start()`, which needs to be called separately like in the example above.
