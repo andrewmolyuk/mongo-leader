@@ -16,6 +16,7 @@ update:
 
 release: test
 	@if gh auth status >/dev/null 2>&1; then \
+		rm -Rf CHANGELOG.md; \
 		npx standard-version; \
 		git push --follow-tags; \
 		gh release create $$(git describe --tags --abbrev=0) --notes-file CHANGELOG.md; \
