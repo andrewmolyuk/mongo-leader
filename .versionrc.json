@@ -57,6 +57,6 @@
   "issuePrefixes": ["#"],
   "noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES"],
   "scripts": {
-    "postchangelog": "sed -i '' -e '/^### \\[[^]]*\\]([^)]*) ([^)]*)$/d' -e '/./,$!d' CHANGELOG.md && echo '✓ Cleaned up changelog format'"
+    "postchangelog": "sed -i '' -e '/^### \\[[^]]*\\]([^)]*) ([^)]*)$/d' -e '/^# Changelog$/d' -e '/^All notable changes to this project will be documented in this file\\./d' -e '/^See \\[standard-version\\]/d' -e '/./,$!d' CHANGELOG.md && echo '✓ Cleaned up changelog format'"
   }
 }
