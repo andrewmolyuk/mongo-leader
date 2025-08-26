@@ -44,9 +44,9 @@ For more detailed examples, check out the [`example/`](./example/) directory whi
 
 ### TTL Value Changes
 
-Starting from version 1.4.1, `mongo-leader` gracefully handles TTL (time-to-live) configuration changes between application restarts. Previously, changing the `ttl` option would cause an `IndexOptionsConflict` error when MongoDB attempted to create a TTL index with different expiration settings.
+Starting from version 1.5.0, `mongo-leader` gracefully handles TTL (time-to-live) configuration changes between application restarts. Previously, changing the `ttl` option would cause an `IndexOptionsConflict` error when MongoDB attempted to create a TTL index with different expiration settings.
 
-**Before (versions < 1.4.1):**
+**Before (versions < 1.5.0):**
 
 ```javascript
 // First run
@@ -58,7 +58,7 @@ const leader2 = new Leader(db, { ttl: 5000, wait: 1000 })
 await leader2.start() // Would throw IndexOptionsConflict error
 ```
 
-**After (versions >= 1.4.1):**
+**After (versions >= 1.5.0):**
 
 ```javascript
 // First run
