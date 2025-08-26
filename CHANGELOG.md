@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.5.0](https://github.com/andrewmolyuk/mongo-leader/compare/v1.4.0...v1.5.0) (2025-08-26)
+
+
+### Features
+
+* **#225:** implement graceful handling of TTL configuration changes in MongoDB [#225](https://github.com/andrewmolyuk/mongo-leader/issues/225) ([3d6b76e](https://github.com/andrewmolyuk/mongo-leader/commit/3d6b76e50003307dafcef1dd3599ba81741eff90))
+
 ## [1.4.0](https://github.com/andrewmolyuk/mongo-leader/compare/v1.3.1...v1.4.0) (2025-08-25)
 
 
