@@ -172,4 +172,25 @@ leader.on('error', (error) => {
 
 This project is licensed under the [MIT License](https://github.com/andrewmolyuk/mongo-leader/blob/master/LICENSE).
 
+## Releases
+
+This project uses [semantic-release](https://github.com/semantic-release/semantic-release) for automated versioning and publishing. Releases are triggered automatically when commits are pushed to the `master` branch.
+
+### Commit Message Format
+
+To trigger releases, use [Conventional Commits](https://conventionalcommits.org/) format:
+
+- `feat:` - New features (minor version bump)
+- `fix:` - Bug fixes (patch version bump)  
+- `BREAKING CHANGE:` - Breaking changes (major version bump)
+- `chore:`, `docs:`, `style:`, `refactor:`, `test:`, `ci:` - No version bump
+
+Example commit messages:
+
+```bash
+feat: add new leader election algorithm
+fix: resolve TTL index conflict issue
+docs: update API documentation
+```
+
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fandrewmolyuk%2Fmongo-leader.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fandrewmolyuk%2Fmongo-leader?ref=badge_shield)
