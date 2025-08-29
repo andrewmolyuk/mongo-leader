@@ -6,7 +6,7 @@ const url = 'mongodb://localhost:27017'
 async function connectAndStart() {
   let client
   let leader
-  
+
   try {
     // Connect to MongoDB
     client = await MongoClient.connect(url)
@@ -14,9 +14,9 @@ async function connectAndStart() {
 
     // Create leader instance with proper TTL/wait ratio
     leader = new Leader(client.db('test'), {
-      ttl: 10000,  // 10 seconds TTL
-      wait: 1000,  // 1 second between election attempts (ttl must be >= wait * 4)
-      key: 'my-service-leader' // Unique key for this service
+      ttl: 10000, // 10 seconds TTL
+      wait: 1000, // 1 second between election attempts (ttl must be >= wait * 4)
+      key: 'my-service-leader', // Unique key for this service
     })
 
     // Set up event listeners for comprehensive monitoring
@@ -54,22 +54,22 @@ async function connectAndStart() {
     // Graceful shutdown handling
     const shutdown = async (signal) => {
       console.log(`\n🛑 Received ${signal}. Shutting down gracefully...`)
-      
+
       // Clear the status interval
       clearInterval(statusInterval)
-      
+
       // Stop the leader election and clean up resources
       if (leader) {
         leader.stop()
         console.log('Leader election stopped and resources cleaned up')
       }
-      
+
       // Close MongoDB connection
       if (client) {
         await client.close()
         console.log('MongoDB connection closed')
       }
-      
+
       console.log('Shutdown complete')
       process.exit(0)
     }
@@ -77,10 +77,9 @@ async function connectAndStart() {
     // Handle shutdown signals
     process.on('SIGINT', () => shutdown('SIGINT'))
     process.on('SIGTERM', () => shutdown('SIGTERM'))
-
   } catch (error) {
     console.error('Failed to start:', error.message)
-    
+
     // Cleanup on startup failure
     if (leader) {
       leader.stop()
@@ -100,4 +99,3 @@ process.on('unhandledRejection', (reason, promise) => {
 
 console.log('Starting mongo-leader example...')
 connectAndStart().catch(console.error)
-

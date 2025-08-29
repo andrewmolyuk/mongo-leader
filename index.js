@@ -8,11 +8,11 @@ class Leader extends EventEmitter {
     this.id = crypto.randomBytes(32).toString('hex')
     this.db = db
     this.options = {}
-    
+
     // Set minimum values
     const ttl = Math.max(options.ttl || 0, 1000) // Lock time to live
     const wait = Math.max(options.wait || 0, 100) // Time between tries to be elected
-    
+
     // Validate TTL vs wait relationship
     // TTL should be at least 4x the wait time to ensure proper renewal
     // Renewal happens at ttl/2, so we need ttl/2 > wait * 2 for safety margin
@@ -20,10 +20,10 @@ class Leader extends EventEmitter {
     if (ttl < minTtlForWait) {
       throw new Error(
         `TTL (${ttl}ms) is too short relative to wait time (${wait}ms). ` +
-        `TTL should be at least ${minTtlForWait}ms (4x the wait time) to ensure reliable leader renewal.`
+          `TTL should be at least ${minTtlForWait}ms (4x the wait time) to ensure reliable leader renewal.`,
       )
     }
-    
+
     this.options.ttl = ttl
     this.options.wait = wait
     this.paused = false
@@ -47,37 +47,32 @@ class Leader extends EventEmitter {
       await this.db.admin().command({ setParameter: 1, ttlMonitorSleepSecs: 1 })
     } catch (_err) {
       console.error(
-        `Error on running setParameter command on MongoDB server to enable TTL monitor sleep time to 1 second. This is not a critical error, but it may cause some performance issues. Error: ${_err}`
+        `Error on running setParameter command on MongoDB server to enable TTL monitor sleep time to 1 second. This is not a critical error, but it may cause some performance issues. Error: ${_err}`,
       )
     }
     const cursor = await this.db.listCollections({ name: this.key })
     const exists = await cursor.hasNext()
-    const collection = exists
-      ? this.db.collection(this.key)
-      : await this.db.createCollection(this.key)
-    
+    const collection = exists ? this.db.collection(this.key) : await this.db.createCollection(this.key)
+
     const expectedTtl = this.options.ttl / 1000
     try {
-      await collection.createIndex(
-        { createdAt: 1 },
-        { expireAfterSeconds: expectedTtl, background: true }
-      )
+      await collection.createIndex({ createdAt: 1 }, { expireAfterSeconds: expectedTtl, background: true })
     } catch (error) {
       // Handle IndexOptionsConflict when TTL has changed
-      if (error.code === 85 || error.message.includes('IndexOptionsConflict') || 
-          error.message.includes('An equivalent index already exists with the same name but different options')) {
+      if (
+        error.code === 85 ||
+        error.message.includes('IndexOptionsConflict') ||
+        error.message.includes('An equivalent index already exists with the same name but different options')
+      ) {
         try {
           // Get existing index information
           const indexes = await collection.listIndexes().toArray()
-          const existingIndex = indexes.find(idx => idx.name === 'createdAt_1')
-          
+          const existingIndex = indexes.find((idx) => idx.name === 'createdAt_1')
+
           if (existingIndex && existingIndex.expireAfterSeconds !== expectedTtl) {
             // Drop the existing index and recreate with new TTL
             await collection.dropIndex('createdAt_1')
-            await collection.createIndex(
-              { createdAt: 1 },
-              { expireAfterSeconds: expectedTtl, background: true }
-            )
+            await collection.createIndex({ createdAt: 1 }, { expireAfterSeconds: expectedTtl, background: true })
           }
         } catch {
           // If we can't drop and recreate, throw the original error
@@ -95,9 +90,7 @@ class Leader extends EventEmitter {
     if (!this.initiated) {
       await this.start()
     }
-    const item = await this.db
-      .collection(this.key)
-      .findOne({ 'leader-id': this.id })
+    const item = await this.db.collection(this.key).findOne({ 'leader-id': this.id })
     return item != null && item['leader-id'] === this.id
   }
 
@@ -106,16 +99,16 @@ class Leader extends EventEmitter {
     if (this.initiated) {
       return
     }
-    
+
     // If currently starting, return the existing promise
     if (this.starting && this.startPromise) {
       return this.startPromise
     }
-    
+
     // Mark as starting and create the start promise
     this.starting = true
     this.startPromise = this._doStart()
-    
+
     try {
       await this.startPromise
     } finally {
@@ -134,14 +127,14 @@ class Leader extends EventEmitter {
 
   async elect() {
     if (this.paused) return
-    
+
     try {
       const result = await this.db
         .collection(this.key)
         .findOneAndUpdate(
           {},
           { $setOnInsert: { 'leader-id': this.id, createdAt: new Date() } },
-          { upsert: true, returnOriginal: false, includeResultMetadata: true }
+          { upsert: true, returnOriginal: false, includeResultMetadata: true },
         )
       if (result?.lastErrorObject?.updatedExisting) {
         this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
@@ -158,15 +151,15 @@ class Leader extends EventEmitter {
 
   async renew() {
     if (this.paused) return
-    
+
     try {
       const result = await this.db
-          .collection(this.key)
-          .findOneAndUpdate(
-              { 'leader-id': this.id },
-              { $set: { 'leader-id': this.id, createdAt: new Date() } },
-              { upsert: false, returnOriginal: false, includeResultMetadata: true }
-          )
+        .collection(this.key)
+        .findOneAndUpdate(
+          { 'leader-id': this.id },
+          { $set: { 'leader-id': this.id, createdAt: new Date() } },
+          { upsert: false, returnOriginal: false, includeResultMetadata: true },
+        )
       if (result?.lastErrorObject?.updatedExisting) {
         this.renewTimeout = setTimeout(() => this.renew(), this.options.ttl / 2)
       } else {

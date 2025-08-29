@@ -8,21 +8,21 @@ const mockCollection = {
   findOne: jest.fn(() => Promise.resolve()),
   findOneAndUpdate: jest.fn(() => Promise.resolve()),
   listIndexes: jest.fn(() => ({
-    toArray: jest.fn(() => Promise.resolve([]))
+    toArray: jest.fn(() => Promise.resolve([])),
   })),
-  dropIndex: jest.fn(() => Promise.resolve())
+  dropIndex: jest.fn(() => Promise.resolve()),
 }
 
 const mockDb = {
   command: jest.fn(() => Promise.resolve()),
   admin: jest.fn(() => ({
-    command: jest.fn(() => Promise.resolve())
+    command: jest.fn(() => Promise.resolve()),
   })),
   listCollections: jest.fn(() => ({
-    hasNext: jest.fn(() => Promise.resolve(false))
+    hasNext: jest.fn(() => Promise.resolve(false)),
   })),
   collection: jest.fn(() => mockCollection),
-  createCollection: jest.fn(() => mockCollection)
+  createCollection: jest.fn(() => mockCollection),
 }
 
 module.exports = { mockDb, mockCollection }

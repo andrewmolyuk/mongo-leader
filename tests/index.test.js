@@ -21,7 +21,7 @@ describe('Leader', () => {
       expect(leader.options.wait).toBe(100)
       expect(leader.key).toMatch(/^leader-?/)
     })
-    
+
     it('should accept valid ttl and wait options', () => {
       // Act
       const leader = new Leader(mockDb, { ttl: 8000, wait: 2000 })
@@ -29,7 +29,7 @@ describe('Leader', () => {
       expect(leader.options.ttl).toBe(8000)
       expect(leader.options.wait).toBe(2000)
     })
-    
+
     it('should enforce minimum values for ttl and wait', () => {
       // Act
       const leader = new Leader(mockDb, { ttl: 500, wait: 50 })
@@ -37,21 +37,25 @@ describe('Leader', () => {
       expect(leader.options.ttl).toBe(1000) // minimum ttl
       expect(leader.options.wait).toBe(100) // minimum wait
     })
-    
+
     it('should throw error when ttl is too short relative to wait time', () => {
       // Act & Assert
       expect(() => {
         new Leader(mockDb, { ttl: 2000, wait: 1000 }) // ttl < wait * 4
-      }).toThrow('TTL (2000ms) is too short relative to wait time (1000ms). TTL should be at least 4000ms (4x the wait time) to ensure reliable leader renewal.')
+      }).toThrow(
+        'TTL (2000ms) is too short relative to wait time (1000ms). TTL should be at least 4000ms (4x the wait time) to ensure reliable leader renewal.',
+      )
     })
-    
+
     it('should throw error when default ttl conflicts with large wait time', () => {
       // Act & Assert
       expect(() => {
         new Leader(mockDb, { wait: 500 }) // default ttl 1000 < wait 500 * 4
-      }).toThrow('TTL (1000ms) is too short relative to wait time (500ms). TTL should be at least 2000ms (4x the wait time) to ensure reliable leader renewal.')
+      }).toThrow(
+        'TTL (1000ms) is too short relative to wait time (500ms). TTL should be at least 2000ms (4x the wait time) to ensure reliable leader renewal.',
+      )
     })
-    
+
     it('should accept ttl exactly 4x the wait time', () => {
       // Act
       const leader = new Leader(mockDb, { ttl: 4000, wait: 1000 })
@@ -59,7 +63,7 @@ describe('Leader', () => {
       expect(leader.options.ttl).toBe(4000)
       expect(leader.options.wait).toBe(1000)
     })
-    
+
     it('should work with default values', () => {
       // Act & Assert - should not throw
       expect(() => {
@@ -85,7 +89,7 @@ describe('Leader', () => {
       // Arrange
       const leader = new Leader(mockDb)
       mockDb.listCollections.mockResolvedValue({
-        hasNext: () => Promise.resolve(true)
+        hasNext: () => Promise.resolve(true),
       })
       jest.clearAllMocks()
       // Act
@@ -104,35 +108,33 @@ describe('Leader', () => {
       const leader = new Leader(mockDb, { ttl: 5000, wait: 1000 })
       const indexOptionsError = new Error('An equivalent index already exists with the same name but different options')
       indexOptionsError.code = 85
-      
+
       // Mock the index creation to throw IndexOptionsConflict first
       mockCollection.createIndex.mockRejectedValueOnce(indexOptionsError)
-      
+
       // Mock listIndexes to return existing index with different TTL
       mockCollection.listIndexes.mockReturnValueOnce({
-        toArray: () => Promise.resolve([
-          { name: 'createdAt_1', expireAfterSeconds: 1 } // old TTL value
-        ])
+        toArray: () =>
+          Promise.resolve([
+            { name: 'createdAt_1', expireAfterSeconds: 1 }, // old TTL value
+          ]),
       })
-      
+
       // Mock dropIndex to succeed
       mockCollection.dropIndex.mockResolvedValueOnce()
-      
+
       // Mock the second createIndex call to succeed
       mockCollection.createIndex.mockResolvedValueOnce()
-      
+
       // Act
       await leader.initDatabase()
-      
+
       // Assert
       expect(mockCollection.createIndex).toHaveBeenCalledTimes(2) // first fails, second succeeds
       expect(mockCollection.listIndexes).toHaveBeenCalled()
       expect(mockCollection.dropIndex).toHaveBeenCalledWith('createdAt_1')
-      expect(mockCollection.createIndex).toHaveBeenLastCalledWith(
-        { createdAt: 1 },
-        { expireAfterSeconds: 5, background: true }
-      )
-      
+      expect(mockCollection.createIndex).toHaveBeenLastCalledWith({ createdAt: 1 }, { expireAfterSeconds: 5, background: true })
+
       // Cleanup
       leader.pause()
     })
@@ -142,25 +144,26 @@ describe('Leader', () => {
       const leader = new Leader(mockDb, { ttl: 5000, wait: 1000 })
       const indexOptionsError = new Error('An equivalent index already exists with the same name but different options')
       indexOptionsError.code = 85
-      
+
       // Mock the index creation to throw IndexOptionsConflict
       mockCollection.createIndex.mockRejectedValueOnce(indexOptionsError)
-      
+
       // Mock listIndexes to return existing index with same TTL
       mockCollection.listIndexes.mockReturnValueOnce({
-        toArray: () => Promise.resolve([
-          { name: 'createdAt_1', expireAfterSeconds: 5 } // same TTL value
-        ])
+        toArray: () =>
+          Promise.resolve([
+            { name: 'createdAt_1', expireAfterSeconds: 5 }, // same TTL value
+          ]),
       })
-      
+
       // Act
       await leader.initDatabase()
-      
+
       // Assert
       expect(mockCollection.createIndex).toHaveBeenCalledTimes(1) // only first call
       expect(mockCollection.listIndexes).toHaveBeenCalled()
       expect(mockCollection.dropIndex).not.toHaveBeenCalled() // should not drop if TTL is same
-      
+
       // Cleanup
       leader.pause()
     })
@@ -170,10 +173,10 @@ describe('Leader', () => {
       const leader = new Leader(mockDb)
       const otherError = new Error('Some other database error')
       mockCollection.createIndex.mockRejectedValueOnce(otherError)
-      
+
       // Act & Assert
       await expect(leader.initDatabase()).rejects.toThrow('Some other database error')
-      
+
       // Cleanup
       leader.pause()
     })
@@ -249,7 +252,7 @@ describe('Leader', () => {
       // Arrange
       const leader = new Leader(mockDb)
       mockCollection.findOneAndUpdate.mockResolvedValue({
-        lastErrorObject: { updatedExisting: true }
+        lastErrorObject: { updatedExisting: true },
       })
       await leader.start()
       // Act
@@ -276,7 +279,7 @@ describe('Leader', () => {
       const leader = new Leader(mockDb)
       const spy = jest.spyOn(leader, 'emit')
       mockCollection.findOneAndUpdate.mockResolvedValue({
-        lastErrorObject: { updatedExisting: false }
+        lastErrorObject: { updatedExisting: false },
       })
       await leader.start()
       // Act
@@ -292,7 +295,7 @@ describe('Leader', () => {
       const leader = new Leader(mockDb)
       const spy = jest.spyOn(leader, 'emit')
       mockCollection.findOneAndUpdate.mockResolvedValue({
-        lastErrorObject: { updatedExisting: true }
+        lastErrorObject: { updatedExisting: true },
       })
       await leader.start()
       // Act
@@ -307,22 +310,22 @@ describe('Leader', () => {
       const leader = new Leader(mockDb)
       const errorSpy = jest.spyOn(leader, 'emit')
       const dbError = new Error('Database connection failed')
-      
+
       // Set up error listener to prevent unhandled error
       leader.on('error', () => {}) // Consume error events
-      
+
       await leader.start()
       jest.clearAllMocks()
-      
+
       // Configure mock to reject only for this test
       mockCollection.findOneAndUpdate.mockRejectedValueOnce(dbError)
-      
+
       // Act
       await leader.elect()
-      
+
       // Assert
       expect(errorSpy).toHaveBeenCalledWith('error', dbError)
-      
+
       // Cleanup
       leader.stop()
     })
@@ -344,7 +347,7 @@ describe('Leader', () => {
       // Arrange
       const leader = new Leader(mockDb)
       mockCollection.findOneAndUpdate.mockResolvedValue({
-        lastErrorObject: { updatedExisting: false }
+        lastErrorObject: { updatedExisting: false },
       })
       await leader.start()
       // Act
@@ -371,7 +374,7 @@ describe('Leader', () => {
       const leader = new Leader(mockDb)
       const spy = jest.spyOn(leader, 'emit')
       mockCollection.findOneAndUpdate.mockResolvedValue({
-        lastErrorObject: { updatedExisting: false }
+        lastErrorObject: { updatedExisting: false },
       })
       await leader.start()
       // Act
@@ -387,7 +390,7 @@ describe('Leader', () => {
       const leader = new Leader(mockDb)
       const spy = jest.spyOn(leader, 'emit')
       mockCollection.findOneAndUpdate.mockResolvedValue({
-        lastErrorObject: { updatedExisting: true }
+        lastErrorObject: { updatedExisting: true },
       })
       await leader.start()
       // Act
@@ -402,23 +405,23 @@ describe('Leader', () => {
       const leader = new Leader(mockDb)
       const errorSpy = jest.spyOn(leader, 'emit')
       const dbError = new Error('Database connection failed')
-      
+
       // Set up error listener to prevent unhandled error
       leader.on('error', () => {}) // Consume error events
-      
+
       await leader.start()
       jest.clearAllMocks()
-      
+
       // Configure mock to reject for this test
       mockCollection.findOneAndUpdate.mockRejectedValueOnce(dbError)
-      
+
       // Act
       await leader.renew()
-      
+
       // Assert
       expect(errorSpy).toHaveBeenCalledWith('error', dbError)
       expect(errorSpy).toHaveBeenCalledWith('revoked')
-      
+
       // Cleanup
       leader.stop()
     })
@@ -506,19 +509,15 @@ describe('Leader', () => {
       // Arrange
       const leader = new Leader(mockDb)
       const initDatabaseSpy = jest.spyOn(leader, 'initDatabase')
-      
+
       // Act - call start multiple times concurrently
-      const promises = [
-        leader.start(),
-        leader.start(),
-        leader.start()
-      ]
+      const promises = [leader.start(), leader.start(), leader.start()]
       await Promise.all(promises)
-      
+
       // Assert - initDatabase should only be called once
       expect(initDatabaseSpy).toHaveBeenCalledTimes(1)
       expect(leader.initiated).toBe(true)
-      
+
       // Cleanup
       leader.stop()
     })
@@ -527,19 +526,15 @@ describe('Leader', () => {
       const leader = new Leader(mockDb)
       const error = new Error('Database connection failed')
       mockDb.command.mockRejectedValueOnce(error)
-      
+
       // Act & Assert - all concurrent calls should reject with the same error
-      const promises = [
-        leader.start(),
-        leader.start(),
-        leader.start()
-      ]
-      
+      const promises = [leader.start(), leader.start(), leader.start()]
+
       await expect(Promise.all(promises)).rejects.toThrow('Database connection failed')
       expect(leader.initiated).toBe(false)
       expect(leader.starting).toBe(false)
       expect(leader.startPromise).toBe(null)
-      
+
       // Cleanup
       leader.stop()
     })
@@ -549,14 +544,14 @@ describe('Leader', () => {
       await leader.start()
       const initDatabaseSpy = jest.spyOn(leader, 'initDatabase')
       jest.clearAllMocks()
-      
+
       // Act
       await leader.start()
-      
+
       // Assert
       expect(initDatabaseSpy).not.toHaveBeenCalled()
       expect(mockDb.createCollection).not.toHaveBeenCalled()
-      
+
       // Cleanup
       leader.stop()
     })
@@ -582,20 +577,20 @@ describe('Leader', () => {
       const leader = new Leader(mockDb)
       await leader.start()
       leader.stop()
-      
+
       // Reset the mock to simulate a fresh start
       mockDb.listCollections.mockResolvedValue({
-        hasNext: () => Promise.resolve(false)
+        hasNext: () => Promise.resolve(false),
       })
       jest.clearAllMocks()
-      
+
       // Act
       await leader.start()
-      
+
       // Assert
       expect(leader.initiated).toBe(true)
       expect(mockDb.createCollection).toHaveBeenCalled()
-      
+
       // Cleanup
       leader.stop()
     })

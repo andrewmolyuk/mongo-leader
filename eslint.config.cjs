@@ -10,8 +10,8 @@ module.exports = [
       sourceType: 'commonjs',
       globals: {
         ...globals.node,
-        ...globals.jest
-      }
+        ...globals.jest,
+      },
     },
     files: ['**/*.js'],
     ignores: ['!**/node_modules/**'],
@@ -21,9 +21,9 @@ module.exports = [
         {
           anonymous: 'always',
           named: 'never',
-          asyncArrow: 'ignore'
-        }
-      ]
-    }
-  }
+          asyncArrow: 'ignore',
+        },
+      ],
+    },
+  },
 ]

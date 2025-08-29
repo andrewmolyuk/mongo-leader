@@ -37,7 +37,7 @@ setInterval(async () => {
 For more detailed examples, check out the [`example/`](./example/) directory which contains:
 
 - **`minimal.js`** - Ultra-minimal polling example (12 lines)
-- **`simple.js`** - Basic event-driven example with leader/follower events (20 lines)  
+- **`simple.js`** - Basic event-driven example with leader/follower events (20 lines)
 - **`example.js`** - Production-ready example with comprehensive error handling and graceful shutdown
 
 ## Configuration Changes
@@ -107,12 +107,12 @@ The constructor performs validation on the options and will throw an error in th
 
 ```javascript
 // This will throw an error
-const leader = new Leader(db, { ttl: 2000, wait: 1000 }) 
-// Error: TTL (2000ms) is too short relative to wait time (1000ms). 
+const leader = new Leader(db, { ttl: 2000, wait: 1000 })
+// Error: TTL (2000ms) is too short relative to wait time (1000ms).
 // TTL should be at least 4000ms (4x the wait time) to ensure reliable leader renewal.
 
 // This is valid
-const leader = new Leader(db, { ttl: 4000, wait: 1000 }) 
+const leader = new Leader(db, { ttl: 4000, wait: 1000 })
 ```
 
 When the `Leader` constructor is invoked, it immediately initiates the election process to become the leader. This means that as soon as a `Leader` instance is created, it starts competing with other instances (if any) to gain the leadership role. This is done by attempting to acquire a lock in the MongoDB collection. If the lock is successfully acquired, the instance becomes the leader. The lock has a time-to-live (TTL) associated with it, after which it is automatically released. This allows for a continuous and dynamic leadership election process where leadership can change over time, especially in scenarios where the current leader instance becomes unavailable or is shut down.
@@ -181,7 +181,7 @@ This project uses [semantic-release](https://github.com/semantic-release/semanti
 To trigger releases, use [Conventional Commits](https://conventionalcommits.org/) format:
 
 - `feat:` - New features (minor version bump)
-- `fix:` - Bug fixes (patch version bump)  
+- `fix:` - Bug fixes (patch version bump)
 - `BREAKING CHANGE:` - Breaking changes (major version bump)
 - `chore:`, `docs:`, `style:`, `refactor:`, `test:`, `ci:` - No version bump
 
