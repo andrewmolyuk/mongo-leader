@@ -43,6 +43,6 @@
     "markdownlint": "^0.39.0",
     "markdownlint-cli": "^0.45.0",
     "npm-check-updates": "^19.1.1",
-    "semantic-release": "^25.0.0"
+    "semantic-release": "^25.0.1"
   }
 }
