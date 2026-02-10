@@ -564,7 +564,7 @@ describe('Leader', () => {
       await leader.start()
       const spy = jest.spyOn(leader, 'removeAllListeners')
       // Act
-      leader.stop()
+      await leader.stop()
       // Assert
       expect(leader.paused).toBe(true)
       expect(leader.initiated).toBe(false)
@@ -572,11 +572,40 @@ describe('Leader', () => {
       expect(leader.startPromise).toBe(null)
       expect(spy).toHaveBeenCalled()
     })
+    it('should delete leader doc on release stop', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      await leader.start()
+      jest.clearAllMocks()
+
+      // Act
+      await leader.stop({ release: true })
+
+      // Assert
+      expect(mockCollection.deleteOne).toHaveBeenCalledWith({ 'leader-id': leader.id })
+    })
+    it('should emit error if release delete fails', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      const errorSpy = jest.spyOn(leader, 'emit')
+      const dbError = new Error('Delete failed')
+      leader.on('error', () => {}) // Consume error events
+
+      await leader.start()
+      jest.clearAllMocks()
+      mockCollection.deleteOne.mockRejectedValueOnce(dbError)
+
+      // Act
+      await leader.stop({ release: true })
+
+      // Assert
+      expect(errorSpy).toHaveBeenCalledWith('error', dbError)
+    })
     it('should allow restart after stop', async () => {
       // Arrange
       const leader = new Leader(mockDb)
       await leader.start()
-      leader.stop()
+      await leader.stop()
 
       // Reset the mock to simulate a fresh start
       mockDb.listCollections.mockResolvedValue({
@@ -592,7 +621,7 @@ describe('Leader', () => {
       expect(mockDb.createCollection).toHaveBeenCalled()
 
       // Cleanup
-      leader.stop()
+      await leader.stop()
     })
   })
 })

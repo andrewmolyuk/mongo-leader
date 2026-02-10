@@ -206,8 +206,18 @@ class Leader extends EventEmitter {
     }
   }
 
-  stop() {
+  async stop(options = {}) {
+    const { release = false } = options
     this.pause()
+
+    if (release && this.collection) {
+      try {
+        await this.collection.deleteOne({ 'leader-id': this.id })
+      } catch (error) {
+        this.emit('error', error)
+      }
+    }
+
     this.removeAllListeners()
     this.initiated = false
     this.starting = false

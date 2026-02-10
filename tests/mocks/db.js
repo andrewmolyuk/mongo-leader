@@ -7,6 +7,7 @@ const mockCollection = {
   createIndex: jest.fn(() => Promise.resolve()),
   findOne: jest.fn(() => Promise.resolve()),
   findOneAndUpdate: jest.fn(() => Promise.resolve()),
+  deleteOne: jest.fn(() => Promise.resolve()),
   listIndexes: jest.fn(() => ({
     toArray: jest.fn(() => Promise.resolve([])),
   })),
