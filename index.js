@@ -32,6 +32,8 @@ class Leader extends EventEmitter {
     this.startPromise = null
     this.electTimeout = null
     this.renewTimeout = null
+    this.hasLeadership = false
+    this.revokedEmitted = false
 
     const hash = crypto
       .createHash('sha1')
@@ -139,6 +141,8 @@ class Leader extends EventEmitter {
       if (result?.lastErrorObject?.updatedExisting) {
         this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
       } else {
+        this.hasLeadership = true
+        this.revokedEmitted = false
         this.emit('elected')
         this.renewTimeout = setTimeout(() => this.renew(), this.options.ttl / 2)
       }
@@ -163,14 +167,22 @@ class Leader extends EventEmitter {
       if (result?.lastErrorObject?.updatedExisting) {
         this.renewTimeout = setTimeout(() => this.renew(), this.options.ttl / 2)
       } else {
-        this.emit('revoked')
+        this._emitRevokedOnce()
         this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
       }
     } catch (error) {
       this.emit('error', error)
       // Assume leadership is lost and try to re-elect
-      this.emit('revoked')
+      this._emitRevokedOnce()
       this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
+    }
+  }
+
+  _emitRevokedOnce() {
+    if (!this.revokedEmitted) {
+      this.revokedEmitted = true
+      this.hasLeadership = false
+      this.emit('revoked')
     }
   }
 
@@ -201,6 +213,8 @@ class Leader extends EventEmitter {
     this.initiated = false
     this.starting = false
     this.startPromise = null
+    this.hasLeadership = false
+    this.revokedEmitted = false
   }
 }
 
