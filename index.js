@@ -35,6 +35,7 @@ class Leader extends EventEmitter {
     this.renewTimeout = null
     this.hasLeadership = false
     this.revokedEmitted = false
+    this.collection = null
 
     const hash = crypto
       .createHash('sha1')
@@ -56,6 +57,7 @@ class Leader extends EventEmitter {
     const cursor = await this.db.listCollections({ name: this.key })
     const exists = await cursor.hasNext()
     const collection = exists ? this.db.collection(this.key) : await this.db.createCollection(this.key)
+    this.collection = collection
 
     const expectedTtl = this.options.ttl / 1000
     try {
@@ -93,7 +95,7 @@ class Leader extends EventEmitter {
     if (!this.initiated) {
       await this.start()
     }
-    const item = await this.db.collection(this.key).findOne({ 'leader-id': this.id })
+    const item = await this.collection.findOne({ 'leader-id': this.id })
     return item != null && item['leader-id'] === this.id
   }
 
@@ -132,13 +134,11 @@ class Leader extends EventEmitter {
     if (this.paused) return
 
     try {
-      const result = await this.db
-        .collection(this.key)
-        .findOneAndUpdate(
-          {},
-          { $setOnInsert: { 'leader-id': this.id }, $currentDate: { createdAt: true } },
-          { upsert: true, returnDocument: 'after', includeResultMetadata: true },
-        )
+      const result = await this.collection.findOneAndUpdate(
+        {},
+        { $setOnInsert: { 'leader-id': this.id }, $currentDate: { createdAt: true } },
+        { upsert: true, returnDocument: 'after', includeResultMetadata: true },
+      )
       if (result?.lastErrorObject?.updatedExisting) {
         this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
       } else {
@@ -158,13 +158,11 @@ class Leader extends EventEmitter {
     if (this.paused) return
 
     try {
-      const result = await this.db
-        .collection(this.key)
-        .findOneAndUpdate(
-          { 'leader-id': this.id },
-          { $set: { 'leader-id': this.id }, $currentDate: { createdAt: true } },
-          { upsert: false, returnDocument: 'after', includeResultMetadata: true },
-        )
+      const result = await this.collection.findOneAndUpdate(
+        { 'leader-id': this.id },
+        { $set: { 'leader-id': this.id }, $currentDate: { createdAt: true } },
+        { upsert: false, returnDocument: 'after', includeResultMetadata: true },
+      )
       if (result?.lastErrorObject?.updatedExisting) {
         this.renewTimeout = setTimeout(() => this.renew(), this.options.ttl / 2)
       } else {
@@ -216,6 +214,7 @@ class Leader extends EventEmitter {
     this.startPromise = null
     this.hasLeadership = false
     this.revokedEmitted = false
+    this.collection = null
   }
 }
 
