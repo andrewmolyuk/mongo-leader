@@ -26,6 +26,7 @@ class Leader extends EventEmitter {
 
     this.options.ttl = ttl
     this.options.wait = wait
+    this.logger = options.logger || console
     this.paused = false
     this.initiated = false
     this.starting = false
@@ -48,7 +49,7 @@ class Leader extends EventEmitter {
     try {
       await this.db.admin().command({ setParameter: 1, ttlMonitorSleepSecs: 1 })
     } catch (_err) {
-      console.error(
+      this.logger.error(
         `Error on running setParameter command on MongoDB server to enable TTL monitor sleep time to 1 second. This is not a critical error, but it may cause some performance issues. Error: ${_err}`,
       )
     }
