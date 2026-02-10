@@ -134,7 +134,7 @@ class Leader extends EventEmitter {
         .findOneAndUpdate(
           {},
           { $setOnInsert: { 'leader-id': this.id }, $currentDate: { createdAt: true } },
-          { upsert: true, returnOriginal: false, includeResultMetadata: true },
+          { upsert: true, returnDocument: 'after', includeResultMetadata: true },
         )
       if (result?.lastErrorObject?.updatedExisting) {
         this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
@@ -158,7 +158,7 @@ class Leader extends EventEmitter {
         .findOneAndUpdate(
           { 'leader-id': this.id },
           { $set: { 'leader-id': this.id }, $currentDate: { createdAt: true } },
-          { upsert: false, returnOriginal: false, includeResultMetadata: true },
+          { upsert: false, returnDocument: 'after', includeResultMetadata: true },
         )
       if (result?.lastErrorObject?.updatedExisting) {
         this.renewTimeout = setTimeout(() => this.renew(), this.options.ttl / 2)
