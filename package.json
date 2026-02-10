@@ -33,16 +33,18 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.1.0",
-    "@commitlint/config-angular": "^20.0.0",
+    "@commitlint/cli": "^20.4.1",
+    "@commitlint/config-angular": "^20.4.1",
+    "@eslint/js": "^9.0.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
-    "eslint": "^9.39.1",
+    "eslint": "^10.0.0",
+    "globals": "^15.9.0",
     "husky": "^9.1.7",
     "jest": "^30.2.0",
-    "markdownlint": "^0.39.0",
-    "markdownlint-cli": "^0.45.0",
-    "npm-check-updates": "^19.1.2",
-    "semantic-release": "^25.0.2"
+    "markdownlint": "^0.40.0",
+    "markdownlint-cli": "^0.47.0",
+    "npm-check-updates": "^19.3.2",
+    "semantic-release": "^25.0.3"
   }
 }
