@@ -133,7 +133,7 @@ class Leader extends EventEmitter {
         .collection(this.key)
         .findOneAndUpdate(
           {},
-          { $setOnInsert: { 'leader-id': this.id, createdAt: new Date() } },
+          { $setOnInsert: { 'leader-id': this.id }, $currentDate: { createdAt: true } },
           { upsert: true, returnOriginal: false, includeResultMetadata: true },
         )
       if (result?.lastErrorObject?.updatedExisting) {
@@ -157,7 +157,7 @@ class Leader extends EventEmitter {
         .collection(this.key)
         .findOneAndUpdate(
           { 'leader-id': this.id },
-          { $set: { 'leader-id': this.id, createdAt: new Date() } },
+          { $set: { 'leader-id': this.id }, $currentDate: { createdAt: true } },
           { upsert: false, returnOriginal: false, includeResultMetadata: true },
         )
       if (result?.lastErrorObject?.updatedExisting) {
