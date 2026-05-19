@@ -31,6 +31,19 @@ jobs:
       - name: Run tests
         run: make test
 
+      - name: Upload test coverage to Codacy
+        run: bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l JavaScript -r coverage/lcov.info
+        env:
+          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        continue-on-error: true
+
+      - name: Upload test coverage to Qlty
+        uses: qltysh/qlty-action/coverage@v2
+        with:
+          oidc: true
+          files: coverage/lcov.info
+        continue-on-error: true
+
       - name: Release
         run: npx semantic-release
         env:
