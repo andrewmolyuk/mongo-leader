@@ -6,9 +6,12 @@ on:
 
 jobs:
   test:
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -17,7 +20,7 @@ jobs:
         with:
           configFile: .commitlintrc.json
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: '24'
           cache: 'npm'
@@ -30,11 +33,9 @@ jobs:
           CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
         continue-on-error: true
 
-      - name: Upload test coverage to Code Climate
-        uses: paambaati/codeclimate-action@v9.0.0
-        env:
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+      - name: Upload test coverage to Qlty
+        uses: qltysh/qlty-action/coverage@v2
         with:
-          coverageCommand: echo "Coverage already generated"
-          coverageLocations: coverage/lcov.info:lcov
+          oidc: true
+          files: coverage/lcov.info
         continue-on-error: true
