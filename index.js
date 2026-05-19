@@ -136,15 +136,26 @@ class Leader extends EventEmitter {
     try {
       const result = await this.collection.findOneAndUpdate(
         {},
-        { $setOnInsert: { 'leader-id': this.id }, $currentDate: { createdAt: true } },
+        { $setOnInsert: { 'leader-id': this.id, createdAt: new Date() } },
         { upsert: true, returnDocument: 'after', includeResultMetadata: true },
       )
       if (result?.lastErrorObject?.updatedExisting) {
         this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
       } else {
+        // Clear any pending elect retry to avoid duplicate attempts
+        if (this.electTimeout) {
+          clearTimeout(this.electTimeout)
+          this.electTimeout = null
+        }
+
+        // Only emit 'elected' if we didn't already have leadership
+        const wasLeader = this.hasLeadership
         this.hasLeadership = true
         this.revokedEmitted = false
-        this.emit('elected')
+        if (!wasLeader) {
+          this.emit('elected')
+        }
+
         this.renewTimeout = setTimeout(() => this.renew(), this.options.ttl / 2)
       }
     } catch (error) {
@@ -160,7 +171,7 @@ class Leader extends EventEmitter {
     try {
       const result = await this.collection.findOneAndUpdate(
         { 'leader-id': this.id },
-        { $set: { 'leader-id': this.id }, $currentDate: { createdAt: true } },
+        { $set: { 'leader-id': this.id } },
         { upsert: false, returnDocument: 'after', includeResultMetadata: true },
       )
       if (result?.lastErrorObject?.updatedExisting) {
