@@ -41,7 +41,7 @@
     "eslint": "^10.4.0",
     "globals": "^17.6.0",
     "husky": "^9.1.7",
-    "jest": "^30.4.2",
+    "jest": "^30.5.2",
     "markdownlint": "^0.40.0",
     "markdownlint-cli": "^0.48.0",
     "npm-check-updates": "^22.2.1",
