@@ -126,5 +126,86 @@ describe('Leader (integration)', () => {
       expect(await collection.countDocuments()).toBe(1)
       expect(errors).toEqual([])
     })
+
+    it('starts instances concurrently on a fresh database without failing', async () => {
+      // Arrange - no lock collection yet, so every instance tries to create it
+      const group = Array.from({ length: 8 }, () => createLeader({ key: 'fresh', ttl: 10000, wait: 1000 }))
+
+      // Act
+      const results = await Promise.allSettled(group.map((leader) => leader.start()))
+
+      // Assert
+      expect(results.filter((result) => result.status === 'rejected')).toEqual([])
+      expect(group.filter((leader) => leader.hasLeadership).length).toBe(1)
+      expect(errors).toEqual([])
+    })
+  })
+
+  describe('lifecycle', () => {
+    it('competes for leadership again when started after stop()', async () => {
+      // Arrange
+      const leader = createLeader({ key: 'restart', ttl: 2000, wait: 200 })
+      await leader.start()
+      expect(leader.hasLeadership).toBe(true)
+      await leader.stop({ release: true })
+      leader.on('error', (error) => errors.push(error))
+
+      // Act
+      await leader.start()
+
+      // Assert
+      expect(leader.hasLeadership).toBe(true)
+      expect(await leader.isLeader()).toBe(true)
+      expect(errors).toEqual([])
+    })
+
+    it('gives up leadership on pause() and takes its lock back on resume()', async () => {
+      // Arrange
+      const leader = createLeader({ key: 'pause', ttl: 10000, wait: 200 })
+      const events = []
+      leader.on('elected', () => events.push('elected'))
+      leader.on('revoked', () => events.push('revoked'))
+      await leader.start()
+
+      // Act & Assert - pausing stops renewal, so the instance must stop acting as leader
+      leader.pause()
+      expect(events).toEqual(['elected', 'revoked'])
+      expect(leader.hasLeadership).toBe(false)
+
+      // Act & Assert - its lock hasn't expired yet, so resuming should reclaim it without waiting for the TTL
+      await leader.resume()
+      expect(events).toEqual(['elected', 'revoked', 'elected'])
+      expect(await leader.isLeader()).toBe(true)
+      expect(errors).toEqual([])
+    })
+
+    it('keeps a single election loop when paused and resumed mid-election', async () => {
+      // Arrange - a follower polls every `wait` ms while another instance holds the lock
+      const options = { key: 'single-loop', ttl: 10000, wait: 200 }
+      const holder = createLeader(options)
+      const follower = createLeader(options)
+      await holder.start()
+      await follower.start()
+
+      let attempts = 0
+      const findOneAndUpdate = follower.collection.findOneAndUpdate.bind(follower.collection)
+      follower.collection.findOneAndUpdate = (...args) => {
+        attempts++
+        return findOneAndUpdate(...args)
+      }
+
+      // Act - pause and resume while an election attempt is still in flight
+      const inFlight = follower.elect()
+      follower.pause()
+      await follower.resume()
+      await inFlight
+      attempts = 0
+      await sleep(2000)
+
+      // Assert - one loop makes ~10 attempts in 2s; a duplicated loop makes ~20
+      expect(attempts).toBeLessThanOrEqual(13)
+      expect(follower.hasLeadership).toBe(false)
+      expect(errors).toEqual([])
+    })
   })
 })
