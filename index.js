@@ -1,6 +1,9 @@
 const crypto = require('crypto')
 const { EventEmitter } = require('events')
 
+const LOCK_ID = 'leader'
+const DUPLICATE_KEY_ERROR = 11000
+
 class Leader extends EventEmitter {
   constructor(db, options) {
     super()
@@ -134,9 +137,11 @@ class Leader extends EventEmitter {
     if (this.paused) return
 
     try {
+      // The fixed _id makes concurrent inserts collide on the _id index, so only one instance can win.
+      // The empty filter keeps matching lock documents written by older versions (which have ObjectId _ids).
       const result = await this.collection.findOneAndUpdate(
         {},
-        { $setOnInsert: { 'leader-id': this.id, createdAt: new Date() } },
+        { $setOnInsert: { _id: LOCK_ID, 'leader-id': this.id, createdAt: new Date() } },
         { upsert: true, returnDocument: 'after', includeResultMetadata: true },
       )
       if (result?.lastErrorObject?.updatedExisting) {
@@ -159,7 +164,10 @@ class Leader extends EventEmitter {
         this.renewTimeout = setTimeout(() => this.renew(), this.options.ttl / 2)
       }
     } catch (error) {
-      this.emit('error', error)
+      // A duplicate key error means another instance won the race to insert the lock
+      if (error.code !== DUPLICATE_KEY_ERROR) {
+        this.emit('error', error)
+      }
       // Retry election after wait period
       this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
     }
@@ -171,7 +179,8 @@ class Leader extends EventEmitter {
     try {
       const result = await this.collection.findOneAndUpdate(
         { 'leader-id': this.id },
-        { $set: { 'leader-id': this.id } },
+        // Refreshing createdAt extends the lock's TTL; only the current leader matches this filter
+        { $currentDate: { createdAt: true } },
         { upsert: false, returnDocument: 'after', includeResultMetadata: true },
       )
       if (result?.lastErrorObject?.updatedExisting) {

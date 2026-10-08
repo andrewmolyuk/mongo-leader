@@ -329,6 +329,28 @@ describe('Leader', () => {
       // Cleanup
       leader.stop()
     })
+
+    it('should treat a duplicate key error as a lost election, not an error', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      const emitSpy = jest.spyOn(leader, 'emit')
+      const dupError = new Error('E11000 duplicate key error')
+      dupError.code = 11000
+
+      await leader.start()
+      jest.clearAllMocks()
+      mockCollection.findOneAndUpdate.mockRejectedValueOnce(dupError)
+
+      // Act
+      await leader.elect()
+
+      // Assert
+      expect(emitSpy).not.toHaveBeenCalled()
+      expect(leader.electTimeout).not.toBeNull()
+
+      // Cleanup
+      leader.stop()
+    })
   })
 
   describe('renew', () => {
