@@ -3,6 +3,7 @@ const { EventEmitter } = require('events')
 
 const LOCK_ID = 'leader'
 const DUPLICATE_KEY_ERROR = 11000
+const NAMESPACE_EXISTS_ERROR = 48
 
 class Leader extends EventEmitter {
   constructor(db, options) {
@@ -37,7 +38,9 @@ class Leader extends EventEmitter {
     this.electTimeout = null
     this.renewTimeout = null
     this.hasLeadership = false
-    this.revokedEmitted = false
+    this.stopped = false
+    // Bumped by pause() and stop() so election and renewal calls already in flight don't schedule another loop
+    this.generation = 0
     this.collection = null
 
     const hash = crypto
@@ -59,7 +62,7 @@ class Leader extends EventEmitter {
     }
     const cursor = await this.db.listCollections({ name: this.key })
     const exists = await cursor.hasNext()
-    const collection = exists ? this.db.collection(this.key) : await this.db.createCollection(this.key)
+    const collection = exists ? this.db.collection(this.key) : await this._createCollection()
     this.collection = collection
 
     const expectedTtl = this.options.ttl / 1000
@@ -90,6 +93,18 @@ class Leader extends EventEmitter {
         // If it's not an IndexOptionsConflict, re-throw the original error
         throw error
       }
+    }
+  }
+
+  async _createCollection() {
+    try {
+      return await this.db.createCollection(this.key)
+    } catch (error) {
+      // Before MongoDB 7.0, another instance creating the collection first makes this fail with NamespaceExists
+      if (error.code === NAMESPACE_EXISTS_ERROR) {
+        return this.db.collection(this.key)
+      }
+      throw error
     }
   }
 
@@ -127,6 +142,11 @@ class Leader extends EventEmitter {
 
   async _doStart() {
     if (!this.initiated) {
+      // stop() leaves the instance paused; starting again begins a fresh election
+      if (this.stopped) {
+        this.stopped = false
+        this.paused = false
+      }
       await this.initDatabase()
       await this.elect()
       this.initiated = true
@@ -135,6 +155,7 @@ class Leader extends EventEmitter {
 
   async elect() {
     if (this.paused) return
+    const generation = this.generation
 
     try {
       // The fixed _id makes concurrent inserts collide on the _id index, so only one instance can win.
@@ -144,29 +165,28 @@ class Leader extends EventEmitter {
         { $setOnInsert: { _id: LOCK_ID, 'leader-id': this.id, createdAt: new Date() } },
         { upsert: true, returnDocument: 'after', includeResultMetadata: true },
       )
-      if (result?.lastErrorObject?.updatedExisting) {
-        this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
-      } else {
+      if (generation !== this.generation) return
+
+      const inserted = !result?.lastErrorObject?.updatedExisting
+      // The lock can still be ours after pause() and resume(), until it expires
+      const ownLock = !inserted && result?.value?.['leader-id'] === this.id
+      if (inserted || ownLock) {
         // Clear any pending elect retry to avoid duplicate attempts
         if (this.electTimeout) {
           clearTimeout(this.electTimeout)
           this.electTimeout = null
         }
-
-        // Only emit 'elected' if we didn't already have leadership
-        const wasLeader = this.hasLeadership
-        this.hasLeadership = true
-        this.revokedEmitted = false
-        if (!wasLeader) {
-          this.emit('elected')
-        }
-
-        this.renewTimeout = setTimeout(() => this.renew(), this.options.ttl / 2)
+        this._setLeadership(true)
+        // An existing lock may be close to expiry, so renew it straight away
+        this.renewTimeout = setTimeout(() => this.renew(), ownLock ? 0 : this.options.ttl / 2)
+      } else {
+        this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
       }
     } catch (error) {
+      if (generation !== this.generation) return
       // A duplicate key error means another instance won the race to insert the lock
       if (error.code !== DUPLICATE_KEY_ERROR) {
-        this.emit('error', error)
+        this._emitError(error)
       }
       // Retry election after wait period
       this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
@@ -175,6 +195,7 @@ class Leader extends EventEmitter {
 
   async renew() {
     if (this.paused) return
+    const generation = this.generation
 
     try {
       const result = await this.collection.findOneAndUpdate(
@@ -183,31 +204,43 @@ class Leader extends EventEmitter {
         { $currentDate: { createdAt: true } },
         { upsert: false, returnDocument: 'after', includeResultMetadata: true },
       )
+      if (generation !== this.generation) return
+
       if (result?.lastErrorObject?.updatedExisting) {
         this.renewTimeout = setTimeout(() => this.renew(), this.options.ttl / 2)
       } else {
-        this._emitRevokedOnce()
+        this._setLeadership(false)
         this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
       }
     } catch (error) {
-      this.emit('error', error)
+      if (generation !== this.generation) return
+      this._emitError(error)
       // Assume leadership is lost and try to re-elect
-      this._emitRevokedOnce()
+      this._setLeadership(false)
       this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
     }
   }
 
-  _emitRevokedOnce() {
-    if (!this.revokedEmitted) {
-      this.revokedEmitted = true
-      this.hasLeadership = false
-      this.emit('revoked')
+  // Emits 'elected' or 'revoked' only when leadership actually changes
+  _setLeadership(hasLeadership) {
+    if (this.hasLeadership === hasLeadership) return
+    this.hasLeadership = hasLeadership
+    this.emit(hasLeadership ? 'elected' : 'revoked')
+  }
+
+  // EventEmitter throws when 'error' has no listener, which would crash the process from a timer callback
+  _emitError(error) {
+    if (this.listenerCount('error') > 0) {
+      this.emit('error', error)
+    } else {
+      this.logger.error(`mongo-leader: ${error}`)
     }
   }
 
   pause() {
     if (!this.paused) {
       this.paused = true
+      this.generation++
       if (this.electTimeout) {
         clearTimeout(this.electTimeout)
         this.electTimeout = null
@@ -216,13 +249,18 @@ class Leader extends EventEmitter {
         clearTimeout(this.renewTimeout)
         this.renewTimeout = null
       }
+      // Renewal stops while paused, so the lock will lapse; isLeader() already reports false
+      this._setLeadership(false)
     }
   }
 
   async resume() {
     if (this.paused) {
       this.paused = false
-      await this.elect()
+      // Before start() or after stop() there is no collection yet; start() runs the election then
+      if (this.collection) {
+        await this.elect()
+      }
     }
   }
 
@@ -234,16 +272,16 @@ class Leader extends EventEmitter {
       try {
         await this.collection.deleteOne({ 'leader-id': this.id })
       } catch (error) {
-        this.emit('error', error)
+        this._emitError(error)
       }
     }
 
     this.removeAllListeners()
+    this.stopped = true
     this.initiated = false
     this.starting = false
     this.startPromise = null
     this.hasLeadership = false
-    this.revokedEmitted = false
     this.collection = null
   }
 }

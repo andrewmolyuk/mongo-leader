@@ -96,6 +96,7 @@ Creates a new Leader instance.
   - `ttl`: Lock time to live in milliseconds. The lock will be automatically released after this time. Default and minimum values are 1000. Must be at least 4 times the `wait` value to ensure reliable leader renewal.
   - `wait`: Time between tries getting elected in milliseconds. Default and minimum values are 100.
   - `key`: Unique identifier for the group of instances trying to be elected as leader. Default value is 'default'.
+  - `logger`: Object with an `error(message)` method, used for non-fatal problems and for errors when no `error` listener is registered. Default value is `console`.
 
 > **Important**: The `ttl` value must be at least 4 times the `wait` value. This ensures that the leader renewal (which happens at `ttl/2`) has sufficient time to complete before the lock expires. For example, if `wait` is 500ms, then `ttl` must be at least 2000ms. The constructor will throw an error if this relationship is violated.
 
@@ -115,7 +116,7 @@ const leader = new Leader(db, { ttl: 2000, wait: 1000 })
 const leader = new Leader(db, { ttl: 4000, wait: 1000 })
 ```
 
-When the `Leader` constructor is invoked, it immediately initiates the election process to become the leader. This means that as soon as a `Leader` instance is created, it starts competing with other instances (if any) to gain the leadership role. This is done by attempting to acquire a lock in the MongoDB collection. If the lock is successfully acquired, the instance becomes the leader. The lock has a time-to-live (TTL) associated with it, after which it is automatically released. This allows for a continuous and dynamic leadership election process where leadership can change over time, especially in scenarios where the current leader instance becomes unavailable or is shut down.
+Creating a `Leader` instance doesn't touch the database. The election starts when `start()` is called (or lazily on the first `isLeader()` call), and from then on the instance competes with other instances (if any) for the leadership role. This is done by attempting to acquire a lock in the MongoDB collection. If the lock is successfully acquired, the instance becomes the leader. The lock has a time-to-live (TTL) associated with it, after which it is automatically released. This allows for a continuous and dynamic leadership election process where leadership can change over time, especially in scenarios where the current leader instance becomes unavailable or is shut down.
 
 ### start()
 
@@ -131,19 +132,25 @@ This method checks whether the current instance is the leader or not. It returns
 
 This method is used to pause the leader election process. When called, the instance will stop trying to become a leader. This can be useful in scenarios where you want to manually control when your instance is trying to become a leader.
 
-> Note: The `pause()` method does not make the instance resign if it is currently a leader. It simply stops the instance from attempting to become a leader in the future.
+> Note: A paused instance stops renewing its lock, so if it is the leader it gives up leadership: `revoked` is emitted straight away and `isLeader()` returns `false`. The lock itself isn't deleted; it expires after `ttl`, and no other instance can be elected until then.
 
 ### resume()
 
 This method is used to resume the leader election process. When called, the instance will start trying to become a leader again. This can be useful in scenarios where you have previously paused the leader election process and now want to allow your instance to become a leader again.
 
-> Note: The `resume()` method does not make the instance become a leader immediately. It simply allows the instance to start attempting to become a leader again.
+> Note: If the instance's own lock hasn't expired yet, `resume()` takes it back straight away and emits `elected`. Otherwise the instance competes for leadership again like any other instance.
 
 ### stop()
 
-This method is used to completely stop the leader election process and clean up resources. When called, the instance will be paused, all pending timeouts will be cleared, and all event listeners will be removed. This method should be called when the Leader instance is no longer needed to prevent memory leaks.
+This method is used to completely stop the leader election process and clean up resources. When called, the instance will be paused (emitting `revoked` if it is the leader), all pending timeouts will be cleared, and all event listeners will be removed. This method should be called when the Leader instance is no longer needed to prevent memory leaks.
 
-> Note: After calling `stop()`, the instance should not be used again. Create a new Leader instance if needed.
+Pass `{ release: true }` to delete the instance's lock, so another instance can be elected right away instead of after `ttl`:
+
+```javascript
+await leader.stop({ release: true })
+```
+
+> Note: A stopped instance can be started again with `start()`. Its event listeners were removed, so register them again first.
 
 ## Events
 
@@ -157,7 +164,7 @@ The `revoked` event is emitted when the instance loses its leadership status. Th
 
 ### error
 
-The `error` event is emitted when database operations fail during the election or renewal process. This includes MongoDB connection failures, timeout errors, or any other database-related issues. The leader election process will automatically retry after emitting this event, but applications should handle these errors appropriately.
+The `error` event is emitted when database operations fail during the election or renewal process. This includes MongoDB connection failures, timeout errors, or any other database-related issues. The leader election process will automatically retry after emitting this event, but applications should handle these errors appropriately. If no `error` listener is registered, the error is logged through the `logger` option (`console` by default) instead of crashing the process.
 
 ```javascript
 leader.on('error', (error) => {
@@ -166,7 +173,7 @@ leader.on('error', (error) => {
 })
 ```
 
-> **Note**: During renewal failures, both `error` and `revoked` events will be emitted, as the instance assumes it has lost leadership and attempts to re-elect itself.
+> **Note**: When renewal fails, the leader emits both `error` and `revoked`, as it assumes it has lost leadership and tries to be elected again.
 
 ## License
 

@@ -103,6 +103,35 @@ describe('Leader', () => {
       leader.pause()
     })
 
+    it('should use the existing collection if another instance created it first', async () => {
+      // Arrange - before MongoDB 7.0, concurrent createCollection calls fail with NamespaceExists
+      const leader = new Leader(mockDb)
+      mockDb.listCollections.mockReturnValueOnce({ hasNext: () => Promise.resolve(false) })
+      const namespaceExists = new Error('Collection already exists. NS: test.leader')
+      namespaceExists.code = 48
+      mockDb.createCollection.mockRejectedValueOnce(namespaceExists)
+
+      // Act
+      await leader.initDatabase()
+
+      // Assert
+      expect(mockDb.collection).toHaveBeenCalledWith(leader.key)
+      expect(leader.collection).toBe(mockCollection)
+      expect(mockCollection.createIndex).toHaveBeenCalled()
+    })
+
+    it('should rethrow other createCollection errors', async () => {
+      // Arrange
+      const leader = new Leader(mockDb)
+      mockDb.listCollections.mockReturnValueOnce({ hasNext: () => Promise.resolve(false) })
+      const unauthorized = new Error('not authorized')
+      unauthorized.code = 13
+      mockDb.createCollection.mockRejectedValueOnce(unauthorized)
+
+      // Act & Assert
+      await expect(leader.initDatabase()).rejects.toBe(unauthorized)
+    })
+
     it('should handle IndexOptionsConflict when TTL changes', async () => {
       // Arrange
       const leader = new Leader(mockDb, { ttl: 5000, wait: 1000 })
@@ -353,6 +382,40 @@ describe('Leader', () => {
     })
   })
 
+  describe('without an error listener', () => {
+    it('should log election errors instead of throwing', async () => {
+      // Arrange - EventEmitter throws on an 'error' event with no listener, which crashed the process from a timer
+      const logger = { error: jest.fn() }
+      const leader = new Leader(mockDb, { logger })
+      const dbError = new Error('Database connection failed')
+      await leader.start()
+      mockCollection.findOneAndUpdate.mockRejectedValueOnce(dbError)
+
+      // Act & Assert
+      await expect(leader.elect()).resolves.toBeUndefined()
+      expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('Database connection failed'))
+
+      // Cleanup
+      await leader.stop()
+    })
+
+    it('should log renewal errors instead of throwing', async () => {
+      // Arrange
+      const logger = { error: jest.fn() }
+      const leader = new Leader(mockDb, { logger })
+      const dbError = new Error('Database connection failed')
+      await leader.start()
+      mockCollection.findOneAndUpdate.mockRejectedValueOnce(dbError)
+
+      // Act & Assert
+      await expect(leader.renew()).resolves.toBeUndefined()
+      expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('Database connection failed'))
+
+      // Cleanup
+      await leader.stop()
+    })
+  })
+
   describe('renew', () => {
     it('should renew the leader', async () => {
       // Arrange
@@ -431,6 +494,8 @@ describe('Leader', () => {
       // Set up error listener to prevent unhandled error
       leader.on('error', () => {}) // Consume error events
 
+      // Win the election so a failed renewal means losing leadership
+      mockCollection.findOneAndUpdate.mockResolvedValueOnce({ lastErrorObject: { updatedExisting: false } })
       await leader.start()
       jest.clearAllMocks()
 
@@ -489,6 +554,22 @@ describe('Leader', () => {
       // Cleanup
       leader.pause()
     })
+    it('should not start an election loop when resumed before start', async () => {
+      // Arrange
+      const logger = { error: jest.fn() }
+      const leader = new Leader(mockDb, { logger })
+      leader.pause()
+      jest.clearAllMocks()
+
+      // Act
+      await leader.resume()
+
+      // Assert - there is no collection yet, so electing would fail and retry forever
+      expect(mockCollection.findOneAndUpdate).not.toHaveBeenCalled()
+      expect(leader.electTimeout).toBeNull()
+      expect(logger.error).not.toHaveBeenCalled()
+    })
+
     it('should not resume if not paused', async () => {
       // Arrange
       const leader = new Leader(mockDb)
