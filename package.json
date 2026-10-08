@@ -26,10 +26,9 @@
   },
   "homepage": "https://github.com/andrewmolyuk/mongo-leader#readme",
   "scripts": {
-    "lint": "make lint",
-    "test": "make test",
-    "update": "make update",
-    "release": "make release",
+    "lint": "mise run lint",
+    "test": "mise run test",
+    "update": "mise run update",
     "prepare": "husky"
   },
   "devDependencies": {

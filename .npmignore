@@ -2,7 +2,7 @@
 eslint.config.cjs
 prettierrc.json
 jest.config.js
-Makefile
+mise.toml
 .npmignore
 .DS_Store
 package-lock.json
