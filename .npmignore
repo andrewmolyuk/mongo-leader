@@ -8,3 +8,4 @@ mise.toml
 package-lock.json
 /tests/
 README.md
+.claude/
