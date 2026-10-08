@@ -10,18 +10,33 @@ describe('issue-297', () => {
     jest.clearAllMocks()
   })
 
-  it('does not update createdAt on renew', async () => {
+  it('only sets createdAt on insert when electing', async () => {
     // Arrange
     const leader = new Leader(mockDb, { ttl: 8000, wait: 1000 })
     await leader.start()
 
+    // Assert - a non-leader's election attempt must not refresh the current leader's lock
+    const electUpdate = mockCollection.findOneAndUpdate.mock.calls[0][1]
+    expect(electUpdate).not.toHaveProperty('$currentDate')
+    expect(electUpdate.$setOnInsert).toHaveProperty('createdAt')
+
+    // Cleanup
+    leader.pause()
+  })
+
+  it('refreshes createdAt on renew to extend the lock', async () => {
+    // Arrange
+    const leader = new Leader(mockDb, { ttl: 8000, wait: 1000 })
+    await leader.start()
+    mockCollection.findOneAndUpdate.mockClear()
+
     // Act
     await leader.renew()
 
-    // Assert - ensure renew called findOneAndUpdate without $currentDate
-    expect(mockCollection.findOneAndUpdate).toHaveBeenCalled()
-    const calledUpdate = mockCollection.findOneAndUpdate.mock.calls[0][1]
-    expect(calledUpdate).not.toHaveProperty('$currentDate')
+    // Assert - renew filters on this instance's id, so only the leader can extend the lock
+    const [renewFilter, renewUpdate] = mockCollection.findOneAndUpdate.mock.calls[0]
+    expect(renewFilter).toEqual({ 'leader-id': leader.id })
+    expect(renewUpdate).toEqual({ $currentDate: { createdAt: true } })
 
     // Cleanup
     leader.pause()
