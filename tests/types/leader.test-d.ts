@@ -1,7 +1,7 @@
-// Compile-time checks for index.d.ts, run by `mise run typecheck`
+// Compile-time checks for the published dist/index.d.ts, run by `mise run typecheck`
 
 import { MongoClient } from 'mongodb'
-import { Leader, type LeaderOptions } from '../../index.js'
+import { Leader, type LeaderOptions } from '../../dist/index.js'
 
 declare const client: MongoClient
 

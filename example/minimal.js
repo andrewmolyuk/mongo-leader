@@ -1,4 +1,4 @@
-const { Leader } = require('../index')
+const { Leader } = require('../dist')
 const { MongoClient } = require('mongodb')
 
 async function minimal() {

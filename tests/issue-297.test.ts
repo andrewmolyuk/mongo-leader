@@ -1,24 +1,22 @@
-'use strict'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { describe, it, expect } = require('@jest/globals')
-
-const { Leader } = require('../index')
-const { mockDb, mockCollection } = require('./mocks/db')
+import { Leader } from '../src/index'
+import { db, mockCollection } from './mocks/db'
 
 describe('issue-297', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('only sets createdAt on insert when electing', async () => {
     // Arrange
-    const leader = new Leader(mockDb, { ttl: 8000, wait: 1000 })
+    const leader = new Leader(db, { ttl: 8000, wait: 1000 })
     await leader.start()
 
     // Assert - a non-leader's election attempt must not refresh the current leader's lock
     const electUpdate = mockCollection.findOneAndUpdate.mock.calls[0][1]
     expect(electUpdate).not.toHaveProperty('$currentDate')
-    expect(electUpdate.$setOnInsert).toHaveProperty('createdAt')
+    expect(electUpdate).toHaveProperty('$setOnInsert.createdAt')
 
     // Cleanup
     leader.pause()
@@ -26,7 +24,7 @@ describe('issue-297', () => {
 
   it('refreshes createdAt on renew to extend the lock', async () => {
     // Arrange
-    const leader = new Leader(mockDb, { ttl: 8000, wait: 1000 })
+    const leader = new Leader(db, { ttl: 8000, wait: 1000 })
     await leader.start()
     mockCollection.findOneAndUpdate.mockClear()
 
