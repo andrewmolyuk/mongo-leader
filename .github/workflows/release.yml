@@ -5,7 +5,24 @@ on:
     branches: [master]
 
 jobs:
+  # baloo's Git hook Checks, for commits pushed to master where its hooks didn't run
+  git-hook-checks:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Run baloo's checks on the pushed commits
+        env:
+          BASE: ${{ github.event.before }}
+          BRANCH: ${{ github.ref_name }}
+        run: sh .github/scripts/baloo-checks.sh
+
   release:
+    needs: git-hook-checks
     runs-on: ubuntu-latest
     permissions:
       contents: write

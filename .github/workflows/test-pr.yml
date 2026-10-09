@@ -47,25 +47,4 @@ jobs:
         env:
           PR_BASE: ${{ github.event.pull_request.base.sha }}
           BRANCH: ${{ github.base_ref }}
-        run: |
-          set -e
-          version=0.25.1
-          file=baloo_${version}_linux_amd64
-          dir=$(mktemp -d)
-          for f in "$file" SHA256SUMS; do
-            curl -fsSL -o "$dir/$f" "https://github.com/bunderlog/claude-plugins/releases/download/v$version/$f"
-          done
-          (cd "$dir" && grep " $file\$" SHA256SUMS | sha256sum -c -)
-          baloo=$dir/$file
-          chmod +x "$baloo"
-          BASE=$(git merge-base "$PR_BASE" HEAD)
-          for sha in $(git rev-list "$BASE"..HEAD); do
-            git log -1 --format=%B "$sha" > "$dir/msg"
-            "$baloo" check conventional-commits "$dir/msg"
-            "$baloo" check no-ai-coauthor "$dir/msg"
-          done
-          echo "refs/heads/ci $(git rev-parse HEAD) refs/heads/$BRANCH $BASE" | "$baloo" check linear-history
-          git reset -q --soft "$BASE"
-          "$baloo" check no-secrets-in-commits
-          "$baloo" check no-conflict-markers
-          "$baloo" check no-large-files
+        run: BASE=$(git merge-base "$PR_BASE" HEAD) sh .github/scripts/baloo-checks.sh

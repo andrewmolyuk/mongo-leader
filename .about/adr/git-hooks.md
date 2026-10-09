@@ -7,11 +7,13 @@ The baloo plugin writes the Git hooks in `.git/hooks`, and its pre-commit hook r
 `git-hook-commands.pre-commit` in `.claude/baloo.yml`. Husky was removed: once baloo could run that
 command itself (baloo 0.25.0), husky was left with nothing baloo's Checks don't cover.
 
-The PR workflow's `git-hook-checks` job runs the same Checks on a PR's commits, for those made where
-the hooks didn't run: it downloads a pinned baloo Release from GitHub, verifies it against the
-Release's `SHA256SUMS`, and runs each Check as baloo's README shows, all but `no-stale-adr-date`.
-The Checks read their settings from `.claude/baloo.yml`, the same as the hooks. Bumping the pinned
-version is a change to the workflow.
+A `git-hook-checks` job runs the same Checks in CI, for commits made where the hooks didn't run: on
+a PR's commits, and on commits pushed to `master`, where the release job waits for it. Both run
+`.github/scripts/baloo-checks.sh`, which downloads a pinned baloo Release from GitHub, verifies it
+against the Release's `SHA256SUMS`, and runs each Check as baloo's README shows, all but
+`no-stale-adr-date`. The Checks read their settings from `.claude/baloo.yml`, the same as the hooks.
+The pinned version is bumped in that script. It runs in a job of its own because it moves `HEAD`
+back to check the commits' changes, which the release would otherwise see.
 
 ## Considered options
 
