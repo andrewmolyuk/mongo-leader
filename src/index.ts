@@ -1,17 +1,101 @@
-const crypto = require('crypto')
-const { EventEmitter } = require('events')
+import { createHash, randomBytes } from 'node:crypto'
+import { EventEmitter } from 'node:events'
+import type { Collection, Db } from 'mongodb'
 
 const LOCK_ID = 'leader'
 const DUPLICATE_KEY_ERROR = 11000
 const NAMESPACE_EXISTS_ERROR = 48
 
-class Leader extends EventEmitter {
-  constructor(db, options) {
+export interface LeaderOptions {
+  /** Lock time to live in milliseconds. Default and minimum value is 1000. Must be at least 4 times `wait`. */
+  ttl?: number
+  /** Time between tries to get elected in milliseconds. Default and minimum value is 100. */
+  wait?: number
+  /** Identifies the group of instances competing for leadership. Default value is 'default'. */
+  key?: string
+  /** Used for non-fatal problems, and for errors when no 'error' listener is registered. Default value is `console`. */
+  logger?: { error(message: string): void }
+}
+
+export interface StopOptions {
+  /** Delete this instance's lock so another instance can be elected right away instead of after `ttl`. */
+  release?: boolean
+}
+
+export interface LeaderEvents {
+  /** The instance became the leader. */
+  elected: []
+  /** The instance lost leadership. */
+  revoked: []
+  /** A database operation failed during election or renewal; the instance retries automatically. */
+  error: [error: Error]
+}
+
+type Listener<E extends keyof LeaderEvents> = (...args: LeaderEvents[E]) => void
+
+// Limits EventEmitter's listener methods to the events a Leader emits, with their arguments
+export interface Leader {
+  on<E extends keyof LeaderEvents>(event: E, listener: Listener<E>): this
+  once<E extends keyof LeaderEvents>(event: E, listener: Listener<E>): this
+  off<E extends keyof LeaderEvents>(event: E, listener: Listener<E>): this
+  addListener<E extends keyof LeaderEvents>(event: E, listener: Listener<E>): this
+  removeListener<E extends keyof LeaderEvents>(event: E, listener: Listener<E>): this
+  prependListener<E extends keyof LeaderEvents>(event: E, listener: Listener<E>): this
+  prependOnceListener<E extends keyof LeaderEvents>(event: E, listener: Listener<E>): this
+}
+
+// MongoDB server errors carry a numeric code
+function errorCode(error: unknown): unknown {
+  return error instanceof Error && 'code' in error ? error.code : undefined
+}
+
+export class Leader extends EventEmitter {
+  /** @internal */
+  id: string
+  /** @internal */
+  db: Db
+  /** @internal */
+  options: { ttl: number; wait: number }
+  /** @internal */
+  logger: { error(message: string): void }
+  /** @internal */
+  paused = false
+  /** @internal */
+  initiated = false
+  /** @internal */
+  starting = false
+  /** @internal */
+  startPromise: Promise<void> | null = null
+  /** @internal */
+  electTimeout: NodeJS.Timeout | null = null
+  /** @internal */
+  renewTimeout: NodeJS.Timeout | null = null
+  /** @internal */
+  hasLeadership = false
+  /** @internal */
+  stopped = false
+  /**
+   * Bumped by pause() and stop() so election and renewal calls already in flight don't schedule another loop
+   * @internal
+   */
+  generation = 0
+  /**
+   * Set by start() and cleared by stop(); election and renewal run only in between
+   * @internal
+   */
+  collection: Collection | null = null
+  /** @internal */
+  key: string
+
+  /**
+   * @param db The database that holds the lock collection.
+   * @throws If `ttl` is less than 4 times `wait`.
+   */
+  constructor(db: Db, options?: LeaderOptions) {
     super()
     options = options || {}
-    this.id = crypto.randomBytes(32).toString('hex')
+    this.id = randomBytes(32).toString('hex')
     this.db = db
-    this.options = {}
 
     // Set minimum values
     const ttl = Math.max(options.ttl || 0, 1000) // Lock time to live
@@ -28,30 +112,18 @@ class Leader extends EventEmitter {
       )
     }
 
-    this.options.ttl = ttl
-    this.options.wait = wait
+    this.options = { ttl, wait }
     this.logger = options.logger || console
-    this.paused = false
-    this.initiated = false
-    this.starting = false
-    this.startPromise = null
-    this.electTimeout = null
-    this.renewTimeout = null
-    this.hasLeadership = false
-    this.stopped = false
-    // Bumped by pause() and stop() so election and renewal calls already in flight don't schedule another loop
-    this.generation = 0
-    this.collection = null
 
-    const hash = crypto
-      .createHash('sha1')
+    const hash = createHash('sha1')
       .update(options.key || 'default')
       .digest('hex')
 
     this.key = `leader-${hash}`
   }
 
-  async initDatabase() {
+  /** @internal */
+  async initDatabase(): Promise<void> {
     await this.db.command({ ping: 1 })
     try {
       await this.db.admin().command({ setParameter: 1, ttlMonitorSleepSecs: 1 })
@@ -69,11 +141,12 @@ class Leader extends EventEmitter {
     try {
       await collection.createIndex({ createdAt: 1 }, { expireAfterSeconds: expectedTtl, background: true })
     } catch (error) {
+      const message = error instanceof Error ? error.message : ''
       // Handle IndexOptionsConflict when TTL has changed
       if (
-        error.code === 85 ||
-        error.message.includes('IndexOptionsConflict') ||
-        error.message.includes('An equivalent index already exists with the same name but different options')
+        errorCode(error) === 85 ||
+        message.includes('IndexOptionsConflict') ||
+        message.includes('An equivalent index already exists with the same name but different options')
       ) {
         try {
           // Get existing index information
@@ -96,28 +169,30 @@ class Leader extends EventEmitter {
     }
   }
 
-  async _createCollection() {
+  private async _createCollection(): Promise<Collection> {
     try {
       return await this.db.createCollection(this.key)
     } catch (error) {
       // Before MongoDB 7.0, another instance creating the collection first makes this fail with NamespaceExists
-      if (error.code === NAMESPACE_EXISTS_ERROR) {
+      if (errorCode(error) === NAMESPACE_EXISTS_ERROR) {
         return this.db.collection(this.key)
       }
       throw error
     }
   }
 
-  async isLeader() {
+  /** Resolves to whether this instance holds the lock. Starts the instance first if needed. */
+  async isLeader(): Promise<boolean> {
     if (this.paused) return false
     if (!this.initiated) {
       await this.start()
     }
-    const item = await this.collection.findOne({ 'leader-id': this.id })
+    const item = await this.collection!.findOne({ 'leader-id': this.id })
     return item != null && item['leader-id'] === this.id
   }
 
-  async start() {
+  /** Sets up the lock collection and starts competing for leadership. Safe to call more than once. */
+  async start(): Promise<void> {
     // If already initiated, return immediately
     if (this.initiated) {
       return
@@ -140,7 +215,7 @@ class Leader extends EventEmitter {
     }
   }
 
-  async _doStart() {
+  private async _doStart(): Promise<void> {
     if (!this.initiated) {
       // stop() leaves the instance paused; starting again begins a fresh election
       if (this.stopped) {
@@ -153,14 +228,15 @@ class Leader extends EventEmitter {
     }
   }
 
-  async elect() {
+  /** @internal */
+  async elect(): Promise<void> {
     if (this.paused) return
     const generation = this.generation
 
     try {
       // The fixed _id makes concurrent inserts collide on the _id index, so only one instance can win.
       // The empty filter keeps matching lock documents written by older versions (which have ObjectId _ids).
-      const result = await this.collection.findOneAndUpdate(
+      const result = await this.collection!.findOneAndUpdate(
         {},
         { $setOnInsert: { _id: LOCK_ID, 'leader-id': this.id, createdAt: new Date() } },
         { upsert: true, returnDocument: 'after', includeResultMetadata: true },
@@ -185,7 +261,7 @@ class Leader extends EventEmitter {
     } catch (error) {
       if (generation !== this.generation) return
       // A duplicate key error means another instance won the race to insert the lock
-      if (error.code !== DUPLICATE_KEY_ERROR) {
+      if (errorCode(error) !== DUPLICATE_KEY_ERROR) {
         this._emitError(error)
       }
       // Retry election after wait period
@@ -193,12 +269,13 @@ class Leader extends EventEmitter {
     }
   }
 
-  async renew() {
+  /** @internal */
+  async renew(): Promise<void> {
     if (this.paused) return
     const generation = this.generation
 
     try {
-      const result = await this.collection.findOneAndUpdate(
+      const result = await this.collection!.findOneAndUpdate(
         { 'leader-id': this.id },
         // Refreshing createdAt extends the lock's TTL; only the current leader matches this filter
         { $currentDate: { createdAt: true } },
@@ -222,22 +299,23 @@ class Leader extends EventEmitter {
   }
 
   // Emits 'elected' or 'revoked' only when leadership actually changes
-  _setLeadership(hasLeadership) {
+  private _setLeadership(hasLeadership: boolean): void {
     if (this.hasLeadership === hasLeadership) return
     this.hasLeadership = hasLeadership
     this.emit(hasLeadership ? 'elected' : 'revoked')
   }
 
   // EventEmitter throws when 'error' has no listener, which would crash the process from a timer callback
-  _emitError(error) {
+  private _emitError(error: unknown): void {
     if (this.listenerCount('error') > 0) {
-      this.emit('error', error)
+      this.emit('error', error instanceof Error ? error : new Error(String(error)))
     } else {
       this.logger.error(`mongo-leader: ${error}`)
     }
   }
 
-  pause() {
+  /** Stops competing and renewing; a leader gives up leadership and emits 'revoked'. */
+  pause(): void {
     if (!this.paused) {
       this.paused = true
       this.generation++
@@ -254,7 +332,8 @@ class Leader extends EventEmitter {
     }
   }
 
-  async resume() {
+  /** Competes for leadership again after `pause()`. */
+  async resume(): Promise<void> {
     if (this.paused) {
       this.paused = false
       // Before start() or after stop() there is no collection yet; start() runs the election then
@@ -264,7 +343,8 @@ class Leader extends EventEmitter {
     }
   }
 
-  async stop(options = {}) {
+  /** Pauses, optionally releases the lock, and removes all listeners. The instance can be started again. */
+  async stop(options: StopOptions = {}): Promise<void> {
     const { release = false } = options
     this.pause()
 
@@ -285,5 +365,3 @@ class Leader extends EventEmitter {
     this.collection = null
   }
 }
-
-module.exports = { Leader }

@@ -1,37 +1,36 @@
-'use strict'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { describe, it, expect, beforeEach, afterEach } = require('@jest/globals')
-
-const { Leader } = require('../index')
-const { mockDb, mockCollection } = require('./mocks/db')
+import { Leader } from '../src/index'
+import { collection, db, mockCollection } from './mocks/db'
 
 describe('elect duplicate prevention', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   afterEach(() => {
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
   })
 
   it('clears pending electTimeout and emits elected once', async () => {
-    const leader = new Leader(mockDb)
+    const leader = new Leader(db)
 
     // Simulate a pending retry
-    leader.electTimeout = 12345
+    const pendingRetry = setTimeout(() => {}, 1000)
+    leader.electTimeout = pendingRetry
 
     // Ensure collection is available for elect()
-    leader.collection = mockCollection
+    leader.collection = collection
 
-    const emitSpy = jest.spyOn(leader, 'emit')
-    const clearSpy = jest.spyOn(global, 'clearTimeout')
+    const emitSpy = vi.spyOn(leader, 'emit')
+    const clearSpy = vi.spyOn(globalThis, 'clearTimeout')
 
     // Mock DB to indicate this election inserted the document
     mockCollection.findOneAndUpdate.mockResolvedValue({ lastErrorObject: { updatedExisting: false } })
 
     await leader.elect()
 
-    expect(clearSpy).toHaveBeenCalledWith(12345)
+    expect(clearSpy).toHaveBeenCalledWith(pendingRetry)
     expect(emitSpy).toHaveBeenCalledTimes(1)
     expect(emitSpy).toHaveBeenCalledWith('elected')
   })

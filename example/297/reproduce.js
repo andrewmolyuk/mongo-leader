@@ -4,7 +4,7 @@
 // `createdAt` field over time to show it being updated even when a non-leader
 // instance performs its election attempts.
 
-const { Leader } = require('../../index')
+const { Leader } = require('../../dist')
 const { MongoClient } = require('mongodb')
 
 async function delay(ms) {

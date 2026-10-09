@@ -1,26 +1,24 @@
-'use strict'
-
 // Integration tests against a real mongod (via mongodb-memory-server)
 
-const { describe, it, expect, beforeAll, afterAll, afterEach } = require('@jest/globals')
-const { MongoClient } = require('mongodb')
-const { MongoMemoryServer } = require('mongodb-memory-server')
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { type Db, MongoClient } from 'mongodb'
+import { MongoMemoryServer } from 'mongodb-memory-server'
 
-const { Leader } = require('../../index')
+import { Leader, type LeaderOptions } from '../../src/index'
 
 // The first run downloads a mongod binary
-jest.setTimeout(60000)
+vi.setConfig({ testTimeout: 60000, hookTimeout: 60000 })
 
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 describe('Leader (integration)', () => {
-  let server
-  let client
-  let db
-  let leaders = []
-  let errors = []
+  let server: MongoMemoryServer | undefined
+  let client: MongoClient | undefined
+  let db: Db
+  let leaders: Leader[] = []
+  let errors: Error[] = []
 
-  const createLeader = (options) => {
+  const createLeader = (options: LeaderOptions) => {
     const leader = new Leader(db, options)
     leader.on('error', (error) => errors.push(error))
     leaders.push(leader)
@@ -28,16 +26,15 @@ describe('Leader (integration)', () => {
   }
 
   // Creates the lock collection up front so concurrent start() calls don't race on createCollection
-  const createLockCollection = async (options) => {
+  const createLockCollection = async (options: LeaderOptions) => {
     const leader = new Leader(db, options)
     await leader.initDatabase()
-    return leader.collection
+    return leader.collection!
   }
 
   beforeAll(async () => {
     server = await MongoMemoryServer.create()
-    // The driver loads `os` via dynamic import(), which Jest's VM rejects without --experimental-vm-modules
-    client = await MongoClient.connect(server.getUri(), { runtimeAdapters: { os: require('os') } })
+    client = await MongoClient.connect(server.getUri())
     db = client.db('mongo-leader-test')
   })
 
@@ -57,7 +54,7 @@ describe('Leader (integration)', () => {
     it('keeps leadership well past the TTL while renewing', async () => {
       // Arrange
       const leader = createLeader({ key: 'renewal', ttl: 2000, wait: 200 })
-      const events = []
+      const events: string[] = []
       leader.on('elected', () => events.push('elected'))
       leader.on('revoked', () => events.push('revoked'))
 
@@ -81,7 +78,7 @@ describe('Leader (integration)', () => {
       expect(first.hasLeadership).toBe(true)
       expect(second.hasLeadership).toBe(false)
 
-      const elected = new Promise((resolve) => second.once('elected', resolve))
+      const elected = new Promise<void>((resolve) => second.once('elected', () => resolve()))
 
       // Act - stop without releasing, so the lock can only go away through the TTL index
       await first.stop()
@@ -162,7 +159,7 @@ describe('Leader (integration)', () => {
     it('gives up leadership on pause() and takes its lock back on resume()', async () => {
       // Arrange
       const leader = createLeader({ key: 'pause', ttl: 10000, wait: 200 })
-      const events = []
+      const events: string[] = []
       leader.on('elected', () => events.push('elected'))
       leader.on('revoked', () => events.push('revoked'))
       await leader.start()
@@ -187,23 +184,18 @@ describe('Leader (integration)', () => {
       await holder.start()
       await follower.start()
 
-      let attempts = 0
-      const findOneAndUpdate = follower.collection.findOneAndUpdate.bind(follower.collection)
-      follower.collection.findOneAndUpdate = (...args) => {
-        attempts++
-        return findOneAndUpdate(...args)
-      }
+      const attempts = vi.spyOn(follower.collection!, 'findOneAndUpdate')
 
       // Act - pause and resume while an election attempt is still in flight
       const inFlight = follower.elect()
       follower.pause()
       await follower.resume()
       await inFlight
-      attempts = 0
+      attempts.mockClear()
       await sleep(2000)
 
       // Assert - one loop makes ~10 attempts in 2s; a duplicated loop makes ~20
-      expect(attempts).toBeLessThanOrEqual(13)
+      expect(attempts.mock.calls.length).toBeLessThanOrEqual(13)
       expect(follower.hasLeadership).toBe(false)
       expect(errors).toEqual([])
     })

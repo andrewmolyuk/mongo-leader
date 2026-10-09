@@ -10,17 +10,22 @@ description = "Lint and format JS, TypeScript, Markdown and JSON"
 run = [
   "npx eslint . --fix",
   "npx markdownlint --fix '**/*.md' -i node_modules",
-  "npx prettier --write '**/*.md' '**/*.json' '**/*.js' '**/*.cjs' '**/*.ts'",
+  "npx prettier --write '**/*.md' '**/*.json' '**/*.js' '**/*.cjs' '**/*.ts' '**/*.mts'",
 ]
 
+[tasks.build]
+description = "Compile src/ to dist/ with type definitions"
+run = "npx tsc -p tsconfig.build.json"
+
 [tasks.typecheck]
-description = "Check index.d.ts against the type tests"
-run = "npx tsc -p tests/types"
+description = "Typecheck the source and tests, then check the built dist/index.d.ts against the type tests"
+depends = ["build"]
+run = ["npx tsc", "npx tsc -p tests/types"]
 
 [tasks.test]
-description = "Lint and typecheck, then run the Jest suite with coverage"
+description = "Lint and typecheck, then run the Vitest suite with coverage"
 depends = ["lint", "typecheck"]
-run = "npx jest --detectOpenHandles --forceExit"
+run = "npx vitest run"
 
 [tasks.update]
 description = "Bump dependencies to their latest versions"
