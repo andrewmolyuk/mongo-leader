@@ -52,9 +52,11 @@ leader.on('error', (error) => console.error(error.message)) // error: Error
 
 For more detailed examples, check out the [`example/`](./example/) directory which contains:
 
-- **`minimal.js`** - Ultra-minimal polling example (12 lines)
-- **`simple.js`** - Basic event-driven example with leader/follower events (20 lines)
-- **`example.js`** - Production-ready example with comprehensive error handling and graceful shutdown
+- **`minimal.mts`** - Ultra-minimal polling example (12 lines)
+- **`simple.mts`** - Basic event-driven example with leader/follower events (20 lines)
+- **`example.mts`** - Production-ready example with comprehensive error handling and graceful shutdown
+
+They load the built package, so run `npm run build` first, then run one with Node 24, which runs TypeScript directly: `node example/simple.mts`.
 
 ## Configuration Changes
 

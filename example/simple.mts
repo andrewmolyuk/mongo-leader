@@ -1,5 +1,5 @@
-const { Leader } = require('../dist')
-const { MongoClient } = require('mongodb')
+import { MongoClient } from 'mongodb'
+import { Leader } from '../dist/index.js'
 
 async function simple() {
   // Connect to MongoDB

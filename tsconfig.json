@@ -5,11 +5,13 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "skipLibCheck": true,
+    "erasableSyntaxOnly": true,
+    "allowImportingTsExtensions": true,
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "target": "es2022",
     "types": ["node"]
   },
-  "include": ["src", "tests", "vitest.config.mts"],
+  "include": ["src", "tests", "example", "vitest.config.mts"],
   "exclude": ["tests/types"]
 }

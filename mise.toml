@@ -6,11 +6,10 @@ description = "Install npm dependencies"
 run = "npm install"
 
 [tasks.lint]
-description = "Lint and format JS, TypeScript, Markdown and JSON"
+description = "Lint and format TypeScript, Markdown and JSON"
 run = [
-  "npx eslint . --fix",
   "npx markdownlint --fix '**/*.md' -i node_modules",
-  "npx prettier --write '**/*.md' '**/*.json' '**/*.js' '**/*.cjs' '**/*.ts' '**/*.mts'",
+  "npx prettier --write '**/*.md' '**/*.json' '**/*.ts' '**/*.mts'",
 ]
 
 [tasks.build]

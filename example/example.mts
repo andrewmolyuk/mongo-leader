@@ -1,11 +1,11 @@
-const { Leader } = require('../dist')
-const { MongoClient } = require('mongodb')
+import { MongoClient } from 'mongodb'
+import { Leader } from '../dist/index.js'
 
 const url = 'mongodb://localhost:27017'
 
 async function connectAndStart() {
-  let client
-  let leader
+  let client: MongoClient | undefined
+  let leader: Leader | undefined
 
   try {
     // Connect to MongoDB
@@ -43,16 +43,16 @@ async function connectAndStart() {
     // Check leadership status periodically
     const statusInterval = setInterval(async () => {
       try {
-        const isLeader = await leader.isLeader()
+        const isLeader = await leader!.isLeader()
         const status = isLeader ? '👑 LEADER' : '👤 FOLLOWER'
         console.log(`Status: ${status} (${new Date().toISOString()})`)
       } catch (error) {
-        console.error('Error checking leadership status:', error.message)
+        console.error('Error checking leadership status:', error instanceof Error ? error.message : error)
       }
     }, 2000)
 
     // Graceful shutdown handling
-    const shutdown = async (signal) => {
+    const shutdown = async (signal: NodeJS.Signals) => {
       console.log(`\n🛑 Received ${signal}. Shutting down gracefully...`)
 
       // Clear the status interval
@@ -78,7 +78,7 @@ async function connectAndStart() {
     process.on('SIGINT', () => shutdown('SIGINT'))
     process.on('SIGTERM', () => shutdown('SIGTERM'))
   } catch (error) {
-    console.error('Failed to start:', error.message)
+    console.error('Failed to start:', error instanceof Error ? error.message : error)
 
     // Cleanup on startup failure
     if (leader) {
