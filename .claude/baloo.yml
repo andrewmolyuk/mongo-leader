@@ -1,0 +1,71 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bunderlog/claude-plugins/main/plugins/baloo/schema.json
+#
+# baloo's settings for this repo. Each Check and each Guideline turns on or off with a key of its
+# own here. A wrong setting is reported at session start, and its default applies.
+
+# The Output style for Claude's replies, picked at session start in the settings file that
+# enables the plugin (the project's .claude/settings.local.json for the user's settings), where no
+# settings file of Claude Code's picks one; false picks none.
+output-style: short-replies
+
+# The plugin's Status line, set at session start in .claude/settings.local.json, where no
+# settings file of Claude Code's but the user's own sets one; false takes it out. Instead of
+# true it also takes its bars, in the order shown, and the percentages at which each turns yellow
+# and red, such as { bars: [context, 5h], thresholds: { context: { yellow: 30, red: 50 } } };
+# cache's are of the cache's lifetime left, so red is below yellow.
+status-line: true
+
+# The Session review: when a session ends, a separate Claude session proposes, in .about/proposals/,
+# changes to .about/ for what the conversation settled or left open but nobody wrote down; a
+# later session shows you each, to accept, reject or defer. It never edits .about/ or commits.
+session-review: true
+
+# Format on edit: after each of Claude's edits to a file in the repo, it runs this command in the
+# repo's root with the file's path at the end, and says nothing of how it went. Off without it, or
+# with false.
+# format-on-edit: npx prettier --write
+
+# The project's own commands, by Git hook (pre-commit, commit-msg, pre-push), that the plugin's Git
+# hook runs with sh after its Checks pass, with git's arguments as $1 and, for pre-push, the pushed
+# refs on stdin; the commit or push fails when the command does. Off without it, or with false.
+git-hook-commands:
+  pre-commit: mise run test
+
+# Guidelines, the plugin's working rules: each one on is named to Claude at session start, for
+# Claude to read when a task calls for it, but typescript, vue and testing, which Claude is given
+# whole the first time it reads or edits a file of their subject in a session. A stack's is on
+# where the repo had that stack when this file was made, ci where it had a CI's config, and
+# dependencies where it had a package manager's manifest.
+guidelines:
+  ci: true
+  debugging: true
+  dependencies: true
+  design: true
+  go: false
+  principles: true
+  tailwind: false
+  testing: true
+  typescript: true
+  vue: false
+  writing-for-agents: true
+
+# Checks, each on with true and off with false.
+#
+# Checks in Claude Code's hooks deny a tool call of Claude's that would bypass the Git hooks or show
+# a secret. They are on without their key too.
+claude-hooks:
+  no-git-hook-bypass: true
+  no-secrets-in-context: true
+
+# Checks in Git hooks check every commit or push, yours or Claude's. The Git hooks are written
+# where at least one of their Checks is on. conventional-commits also takes its settings instead
+# of true, such as { types: [feat, fix], max-length: 72 }; types: any takes any type,
+# max-length: 0 any length. no-large-files takes { max-size: 5000 }, in KB; 1024 without it.
+git-hooks:
+  conventional-commits: true
+  linear-history: true
+  no-ai-coauthor: true
+  no-conflict-markers: true
+  no-large-files: true
+  no-secrets-in-commits: true
+  no-stale-adr-date: true
