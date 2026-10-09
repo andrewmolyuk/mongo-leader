@@ -215,5 +215,3 @@ feat: add new leader election algorithm
 fix: resolve TTL index conflict issue
 docs: update API documentation
 ```
-
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fandrewmolyuk%2Fmongo-leader.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fandrewmolyuk%2Fmongo-leader?ref=badge_shield)
