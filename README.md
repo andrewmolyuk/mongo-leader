@@ -32,6 +32,22 @@ setInterval(async () => {
 }, 100)
 ```
 
+## TypeScript
+
+Type definitions ship with the package, so no `@types` package is needed. The `db` argument is typed as the `Db` class from your installed `mongodb` driver, and the `elected`, `revoked` and `error` events are typed:
+
+```typescript
+import { MongoClient } from 'mongodb'
+import { Leader, type LeaderOptions } from 'mongo-leader'
+
+const client = await MongoClient.connect('mongodb://localhost:27017')
+const options: LeaderOptions = { ttl: 10000, wait: 1000, key: 'jobs' }
+const leader = new Leader(client.db('test'), options)
+
+leader.on('elected', () => startJobs())
+leader.on('error', (error) => console.error(error.message)) // error: Error
+```
+
 ## Examples
 
 For more detailed examples, check out the [`example/`](./example/) directory which contains:

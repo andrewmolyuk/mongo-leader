@@ -6,16 +6,20 @@ description = "Install npm dependencies"
 run = "npm install"
 
 [tasks.lint]
-description = "Lint and format JS, Markdown and JSON"
+description = "Lint and format JS, TypeScript, Markdown and JSON"
 run = [
   "npx eslint . --fix",
   "npx markdownlint --fix '**/*.md' -i node_modules",
-  "npx prettier --write '**/*.md' '**/*.json' '**/*.js' '**/*.cjs'",
+  "npx prettier --write '**/*.md' '**/*.json' '**/*.js' '**/*.cjs' '**/*.ts'",
 ]
 
+[tasks.typecheck]
+description = "Check index.d.ts against the type tests"
+run = "npx tsc -p tests/types"
+
 [tasks.test]
-description = "Lint, then run the Jest suite with coverage"
-depends = ["lint"]
+description = "Lint and typecheck, then run the Jest suite with coverage"
+depends = ["lint", "typecheck"]
 run = "npx jest --detectOpenHandles --forceExit"
 
 [tasks.update]
