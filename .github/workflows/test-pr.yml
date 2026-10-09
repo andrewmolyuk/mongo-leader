@@ -15,11 +15,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Validate commit messages
-        uses: wagoid/commitlint-github-action@v6
-        with:
-          configFile: .commitlintrc.json
-
       - uses: jdx/mise-action@v5
       - run: npm ci
       - run: mise run test
@@ -36,3 +31,41 @@ jobs:
           oidc: true
           files: coverage/lcov.info
         continue-on-error: true
+
+  # baloo's Git hook Checks, for commits made where its hooks didn't run (its README's CI section)
+  git-hook-checks:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Run baloo's checks on the PR's commits
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          BRANCH: ${{ github.base_ref }}
+        run: |
+          set -e
+          version=0.25.1
+          file=baloo_${version}_linux_amd64
+          dir=$(mktemp -d)
+          for f in "$file" SHA256SUMS; do
+            curl -fsSL -o "$dir/$f" "https://github.com/bunderlog/claude-plugins/releases/download/v$version/$f"
+          done
+          (cd "$dir" && grep " $file\$" SHA256SUMS | sha256sum -c -)
+          baloo=$dir/$file
+          chmod +x "$baloo"
+          BASE=$(git merge-base "$PR_BASE" HEAD)
+          for sha in $(git rev-list "$BASE"..HEAD); do
+            git log -1 --format=%B "$sha" > "$dir/msg"
+            "$baloo" check conventional-commits "$dir/msg"
+            "$baloo" check no-ai-coauthor "$dir/msg"
+          done
+          echo "refs/heads/ci $(git rev-parse HEAD) refs/heads/$BRANCH $BASE" | "$baloo" check linear-history
+          git reset -q --soft "$BASE"
+          "$baloo" check no-secrets-in-commits
+          "$baloo" check no-conflict-markers
+          "$baloo" check no-large-files
