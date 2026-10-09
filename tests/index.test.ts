@@ -195,6 +195,34 @@ describe('Leader', () => {
       leader.pause()
     })
 
+    it('should log and continue when setParameter is not allowed', async () => {
+      // Arrange - managed MongoDB services often refuse setParameter
+      const logger = { error: vi.fn() }
+      const leader = new Leader(db, { logger })
+      mockDb.admin.mockReturnValueOnce({ command: () => Promise.reject(new Error('not authorized on admin')) })
+
+      // Act
+      await leader.initDatabase()
+
+      // Assert
+      expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('not authorized on admin'))
+      expect(mockCollection.createIndex).toHaveBeenCalled()
+    })
+
+    it('should rethrow the IndexOptionsConflict when the old index cannot be replaced', async () => {
+      // Arrange
+      const leader = new Leader(db, { ttl: 5000, wait: 1000 })
+      const indexOptionsError = Object.assign(new Error('IndexOptionsConflict'), { code: 85 })
+      mockCollection.createIndex.mockRejectedValueOnce(indexOptionsError)
+      mockCollection.listIndexes.mockReturnValueOnce({
+        toArray: () => Promise.resolve([{ name: 'createdAt_1', expireAfterSeconds: 1 }]),
+      })
+      mockCollection.dropIndex.mockRejectedValueOnce(new Error('not authorized to drop index'))
+
+      // Act & Assert
+      await expect(leader.initDatabase()).rejects.toBe(indexOptionsError)
+    })
+
     it('should rethrow non-IndexOptionsConflict errors', async () => {
       // Arrange
       const leader = new Leader(db)
