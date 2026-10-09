@@ -40,3 +40,5 @@ that aren't installed. It doesn't apply to `tests/types`, which checks the built
 - The examples no longer show plain JavaScript usage, though most of the package's users may write
   JavaScript; the README's usage snippets still do.
 - oxlint has fewer rules than ESLint's ecosystem and no custom plugins; this repo used neither.
+- Lint depends on the build: the examples' types come from `dist/`, so type-aware oxlint in a fresh
+  checkout without it reports `Leader` as unknown. The `lint` task in `mise.toml` builds first.
