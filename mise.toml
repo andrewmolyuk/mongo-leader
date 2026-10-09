@@ -8,6 +8,7 @@ run = "npm install"
 [tasks.lint]
 description = "Lint and format TypeScript, Markdown and JSON"
 run = [
+  "npx oxlint --fix --deny-warnings",
   "npx markdownlint --fix '**/*.md' -i node_modules",
   "npx prettier --write '**/*.md' '**/*.json' '**/*.ts' '**/*.mts'",
 ]

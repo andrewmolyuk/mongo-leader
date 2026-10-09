@@ -1,4 +1,4 @@
-# Everything is TypeScript: the library built to CommonJS, tested with Vitest, no ESLint
+# Everything is TypeScript: the library built to CommonJS, tested with Vitest, linted by oxlint
 
 Date: 2026-10-09
 
@@ -16,8 +16,11 @@ a user would; `example/297/reproduce.mts` imports `src/index.ts` instead, since 
 the published types hide. `.mts` marks them as ES modules, which a package without `"type"` would
 otherwise make Node detect with a warning.
 
-There is no ESLint: typescript-eslint supports only TypeScript below 6.1, and the project is on 7.
-Strict `tsc` with `noUnusedLocals` and `noUnusedParameters`, plus Prettier, covers the code instead.
+oxlint lints everything, type-aware through `oxlint-tsgolint`, which is built on typescript-go, the
+TypeScript 7 compiler; `.oxlintrc.json` turns on `no-floating-promises` and `no-misused-promises`,
+and warnings fail the lint. A promise left unawaited on purpose, such as a timer's call to
+`elect()`, which catches its own errors, says so with `void`. Strict `tsc` with `noUnusedLocals`
+and `noUnusedParameters`, plus Prettier, covers the rest.
 
 `skipLibCheck` is on because `mongodb-memory-server`'s type definitions reference `semver` types
 that aren't installed. It doesn't apply to `tests/types`, which checks the built `.d.ts` on its own.
@@ -26,12 +29,14 @@ that aren't installed. It doesn't apply to `tests/types`, which checks the built
 
 - Jest with Babel (until 2026-10-09): replaced by Vitest, which runs TypeScript without a build step.
 - Staying on TypeScript 6.0 to keep ESLint on the `.ts` files: rejected to stay on TypeScript 7.
-- The examples in JavaScript, with ESLint on them (until 2026-10-09): everything moved to
-  TypeScript, which left ESLint nothing to lint, so it was removed with its config.
+- ESLint (until 2026-10-09): it linted only the JavaScript examples, since typescript-eslint supports
+  only TypeScript below 6.1; with everything in TypeScript it had nothing left to lint.
+- Staying without a linter: oxlint's type-aware rules found an `await` of a cursor that isn't a
+  promise, and unawaited `stop()` calls in tests and examples, on its first run.
 - Examples as `.ts`: Node runs them, but warns that it re-parses each as an ES module.
 
 ## Consequences
 
 - The examples no longer show plain JavaScript usage, though most of the package's users may write
   JavaScript; the README's usage snippets still do.
-- Revisit ESLint, with typescript-eslint, once it supports TypeScript 7.
+- oxlint has fewer rules than ESLint's ecosystem and no custom plugins; this repo used neither.
