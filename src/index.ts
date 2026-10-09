@@ -33,7 +33,9 @@ export interface LeaderEvents {
 
 type Listener<E extends keyof LeaderEvents> = (...args: LeaderEvents[E]) => void
 
-// Limits EventEmitter's listener methods to the events a Leader emits, with their arguments
+// Limits EventEmitter's listener methods to the events a Leader emits, with their arguments; the merge
+// adds only method signatures, so it can't hide an uninitialized property
+// oxlint-disable-next-line typescript/no-unsafe-declaration-merging
 export interface Leader {
   on<E extends keyof LeaderEvents>(event: E, listener: Listener<E>): this
   once<E extends keyof LeaderEvents>(event: E, listener: Listener<E>): this
@@ -129,10 +131,10 @@ export class Leader extends EventEmitter {
       await this.db.admin().command({ setParameter: 1, ttlMonitorSleepSecs: 1 })
     } catch (_err) {
       this.logger.error(
-        `Error on running setParameter command on MongoDB server to enable TTL monitor sleep time to 1 second. This is not a critical error, but it may cause some performance issues. Error: ${_err}`,
+        `Error on running setParameter command on MongoDB server to enable TTL monitor sleep time to 1 second. This is not a critical error, but it may cause some performance issues. Error: ${String(_err)}`,
       )
     }
-    const cursor = await this.db.listCollections({ name: this.key })
+    const cursor = this.db.listCollections({ name: this.key })
     const exists = await cursor.hasNext()
     const collection = exists ? this.db.collection(this.key) : await this._createCollection()
     this.collection = collection
@@ -228,7 +230,10 @@ export class Leader extends EventEmitter {
     }
   }
 
-  /** @internal */
+  /**
+   * Catches every error itself, so the timers that call it leave its promise unawaited
+   * @internal
+   */
   async elect(): Promise<void> {
     if (this.paused) return
     const generation = this.generation
@@ -254,9 +259,9 @@ export class Leader extends EventEmitter {
         }
         this._setLeadership(true)
         // An existing lock may be close to expiry, so renew it straight away
-        this.renewTimeout = setTimeout(() => this.renew(), ownLock ? 0 : this.options.ttl / 2)
+        this.renewTimeout = setTimeout(() => void this.renew(), ownLock ? 0 : this.options.ttl / 2)
       } else {
-        this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
+        this.electTimeout = setTimeout(() => void this.elect(), this.options.wait)
       }
     } catch (error) {
       if (generation !== this.generation) return
@@ -265,11 +270,14 @@ export class Leader extends EventEmitter {
         this._emitError(error)
       }
       // Retry election after wait period
-      this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
+      this.electTimeout = setTimeout(() => void this.elect(), this.options.wait)
     }
   }
 
-  /** @internal */
+  /**
+   * Catches every error itself, so the timers that call it leave its promise unawaited
+   * @internal
+   */
   async renew(): Promise<void> {
     if (this.paused) return
     const generation = this.generation
@@ -284,17 +292,17 @@ export class Leader extends EventEmitter {
       if (generation !== this.generation) return
 
       if (result?.lastErrorObject?.updatedExisting) {
-        this.renewTimeout = setTimeout(() => this.renew(), this.options.ttl / 2)
+        this.renewTimeout = setTimeout(() => void this.renew(), this.options.ttl / 2)
       } else {
         this._setLeadership(false)
-        this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
+        this.electTimeout = setTimeout(() => void this.elect(), this.options.wait)
       }
     } catch (error) {
       if (generation !== this.generation) return
       this._emitError(error)
       // Assume leadership is lost and try to re-elect
       this._setLeadership(false)
-      this.electTimeout = setTimeout(() => this.elect(), this.options.wait)
+      this.electTimeout = setTimeout(() => void this.elect(), this.options.wait)
     }
   }
 
@@ -310,7 +318,7 @@ export class Leader extends EventEmitter {
     if (this.listenerCount('error') > 0) {
       this.emit('error', error instanceof Error ? error : new Error(String(error)))
     } else {
-      this.logger.error(`mongo-leader: ${error}`)
+      this.logger.error(`mongo-leader: ${String(error)}`)
     }
   }
 

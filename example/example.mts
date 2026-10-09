@@ -1,11 +1,11 @@
-const { Leader } = require('../dist')
-const { MongoClient } = require('mongodb')
+import { MongoClient } from 'mongodb'
+import { Leader } from '../dist/index.js'
 
 const url = 'mongodb://localhost:27017'
 
 async function connectAndStart() {
-  let client
-  let leader
+  let client: MongoClient | undefined
+  let leader: Leader | undefined
 
   try {
     // Connect to MongoDB
@@ -41,18 +41,20 @@ async function connectAndStart() {
     console.log('Leader election started')
 
     // Check leadership status periodically
-    const statusInterval = setInterval(async () => {
+    const checkStatus = async () => {
       try {
-        const isLeader = await leader.isLeader()
+        const isLeader = await leader!.isLeader()
         const status = isLeader ? '👑 LEADER' : '👤 FOLLOWER'
         console.log(`Status: ${status} (${new Date().toISOString()})`)
       } catch (error) {
-        console.error('Error checking leadership status:', error.message)
+        console.error('Error checking leadership status:', error instanceof Error ? error.message : error)
       }
-    }, 2000)
+    }
+    // checkStatus catches its own errors, so its promise needs no handling
+    const statusInterval = setInterval(() => void checkStatus(), 2000)
 
     // Graceful shutdown handling
-    const shutdown = async (signal) => {
+    const shutdown = async (signal: NodeJS.Signals) => {
       console.log(`\n🛑 Received ${signal}. Shutting down gracefully...`)
 
       // Clear the status interval
@@ -60,7 +62,7 @@ async function connectAndStart() {
 
       // Stop the leader election and clean up resources
       if (leader) {
-        leader.stop()
+        await leader.stop()
         console.log('Leader election stopped and resources cleaned up')
       }
 
@@ -75,14 +77,14 @@ async function connectAndStart() {
     }
 
     // Handle shutdown signals
-    process.on('SIGINT', () => shutdown('SIGINT'))
-    process.on('SIGTERM', () => shutdown('SIGTERM'))
+    process.on('SIGINT', () => void shutdown('SIGINT'))
+    process.on('SIGTERM', () => void shutdown('SIGTERM'))
   } catch (error) {
-    console.error('Failed to start:', error.message)
+    console.error('Failed to start:', error instanceof Error ? error.message : error)
 
     // Cleanup on startup failure
     if (leader) {
-      leader.stop()
+      await leader.stop()
     }
     if (client) {
       await client.close()

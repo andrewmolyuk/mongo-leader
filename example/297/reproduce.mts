@@ -1,13 +1,15 @@
-// reproduce.js
+// reproduce.mts
 // Reproduces issue #297 using the `Leader` class from this package.
 // Starts two Leader instances with the same key and logs the collection's
 // `createdAt` field over time to show it being updated even when a non-leader
 // instance performs its election attempts.
 
-const { Leader } = require('../../dist')
-const { MongoClient } = require('mongodb')
+import { createHash } from 'node:crypto'
+import { MongoClient } from 'mongodb'
+// The source, not dist: this script reads internals the published types hide
+import { Leader } from '../../src/index.ts'
 
-async function delay(ms) {
+async function delay(ms: number) {
   return new Promise((r) => setTimeout(r, ms))
 }
 
@@ -29,8 +31,7 @@ async function run() {
 
   // Clean up any previous runs
   try {
-    const hash = require('crypto')
-      .createHash('sha1')
+    const hash = createHash('sha1')
       .update(opts.key || 'default')
       .digest('hex')
     const collName = `leader-${hash}`
@@ -58,7 +59,7 @@ async function run() {
   // observe the createdAt change on re-insert.
   let readColl = leader1.collection
   for (let i = 1; i <= 12; i++) {
-    const doc = await (readColl || leader2.collection).findOne({})
+    const doc = await (readColl || leader2.collection)!.findOne({})
     const ts = doc && doc.createdAt ? doc.createdAt.toISOString() : 'no-doc'
     console.log(
       `Iter ${i}: createdAt=${ts} | leader1.hasLeadership=${leader1.hasLeadership} | leader2.hasLeadership=${leader2.hasLeadership}`,

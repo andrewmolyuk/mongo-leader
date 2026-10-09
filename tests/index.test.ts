@@ -86,7 +86,7 @@ describe('Leader', () => {
     it('should not create collection if collection is exists', async () => {
       // Arrange
       const leader = new Leader(db)
-      mockDb.listCollections.mockResolvedValue({
+      mockDb.listCollections.mockReturnValue({
         hasNext: () => Promise.resolve(true),
       })
       vi.clearAllMocks()
@@ -249,7 +249,7 @@ describe('Leader', () => {
       expect(result).toBe(true)
       expect(mockCollection.findOne).toHaveBeenCalled()
       // Cleanup
-      leader.stop()
+      await leader.stop()
     })
     it('should return false if the leader is not the current instance', async () => {
       // Arrange
@@ -268,7 +268,7 @@ describe('Leader', () => {
       // Arrange
       const leader = new Leader(db)
       await leader.start()
-      await leader.pause()
+      leader.pause()
       vi.clearAllMocks()
       // Act
       const result = await leader.isLeader()
@@ -281,11 +281,11 @@ describe('Leader', () => {
     it('should start if not initiated', async () => {
       // Arrange
       const leader = new Leader(db)
-      vi.spyOn(leader, 'start')
+      const startSpy = vi.spyOn(leader, 'start')
       // Act
       await leader.isLeader()
       // Assert
-      expect(leader.start).toHaveBeenCalled()
+      expect(startSpy).toHaveBeenCalled()
       // Cleanup
       leader.pause()
     })
@@ -320,7 +320,7 @@ describe('Leader', () => {
     it('should not elect if paused', async () => {
       // Arrange
       const leader = new Leader(db)
-      await leader.pause()
+      leader.pause()
       vi.clearAllMocks()
       // Act
       await leader.elect()
@@ -382,7 +382,7 @@ describe('Leader', () => {
       expect(errorSpy).toHaveBeenCalledWith('error', dbError)
 
       // Cleanup
-      leader.stop()
+      await leader.stop()
     })
 
     it('should treat a duplicate key error as a lost election, not an error', async () => {
@@ -403,7 +403,7 @@ describe('Leader', () => {
       expect(leader.electTimeout).not.toBeNull()
 
       // Cleanup
-      leader.stop()
+      await leader.stop()
     })
   })
 
@@ -470,7 +470,7 @@ describe('Leader', () => {
     it('should not renew if paused', async () => {
       // Arrange
       const leader = new Leader(db)
-      await leader.pause()
+      leader.pause()
       vi.clearAllMocks()
       // Act
       await leader.renew()
@@ -535,7 +535,7 @@ describe('Leader', () => {
       expect(errorSpy).toHaveBeenCalledWith('revoked')
 
       // Cleanup
-      leader.stop()
+      await leader.stop()
     })
   })
 
@@ -619,7 +619,7 @@ describe('Leader', () => {
       expect(leader.paused).toBe(false)
       expect(leader.initiated).toBe(true)
       // Cleanup
-      leader.stop()
+      await leader.stop()
     })
     it('should not call initDatabase if already initiated', async () => {
       // Arrange
@@ -631,7 +631,7 @@ describe('Leader', () => {
       // Assert
       expect(mockDb.createCollection).not.toHaveBeenCalled()
       // Cleanup
-      leader.stop()
+      await leader.stop()
     })
     it('should handle concurrent start calls', async () => {
       // Arrange
@@ -647,7 +647,7 @@ describe('Leader', () => {
       expect(leader.initiated).toBe(true)
 
       // Cleanup
-      leader.stop()
+      await leader.stop()
     })
     it('should handle errors during concurrent start calls', async () => {
       // Arrange
@@ -664,7 +664,7 @@ describe('Leader', () => {
       expect(leader.startPromise).toBe(null)
 
       // Cleanup
-      leader.stop()
+      await leader.stop()
     })
     it('should return immediately if already initiated', async () => {
       // Arrange
@@ -681,7 +681,7 @@ describe('Leader', () => {
       expect(mockDb.createCollection).not.toHaveBeenCalled()
 
       // Cleanup
-      leader.stop()
+      await leader.stop()
     })
   })
 
@@ -736,7 +736,7 @@ describe('Leader', () => {
       await leader.stop()
 
       // Reset the mock to simulate a fresh start
-      mockDb.listCollections.mockResolvedValue({
+      mockDb.listCollections.mockReturnValue({
         hasNext: () => Promise.resolve(false),
       })
       vi.clearAllMocks()

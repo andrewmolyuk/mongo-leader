@@ -1,5 +1,5 @@
-const { Leader } = require('../dist')
-const { MongoClient } = require('mongodb')
+import { MongoClient } from 'mongodb'
+import { Leader } from '../dist/index.js'
 
 async function simple() {
   // Connect to MongoDB
@@ -16,9 +16,8 @@ async function simple() {
   await leader.start()
 
   // Check status every 2 seconds
-  setInterval(async () => {
-    const isLeader = await leader.isLeader()
-    console.log(`Leader status: ${isLeader}`)
+  setInterval(() => {
+    leader.isLeader().then((isLeader) => console.log(`Leader status: ${isLeader}`), console.error)
   }, 2000)
 }
 
