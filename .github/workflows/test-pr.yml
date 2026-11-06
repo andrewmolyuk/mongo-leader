@@ -32,7 +32,7 @@ jobs:
           files: coverage/lcov.info
         continue-on-error: true
 
-  # baloo's Git hook Checks, for commits made where its hooks didn't run (its README's CI section)
+  # The Git hook Checks, for commits made where the hooks didn't run (ADR git-hooks)
   git-hook-checks:
     permissions:
       contents: read
@@ -41,10 +41,10 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Run baloo's checks on the PR's commits
-        env:
-          PR_BASE: ${{ github.event.pull_request.base.sha }}
-          BRANCH: ${{ github.base_ref }}
-        run: BASE=$(git merge-base "$PR_BASE" HEAD) sh .github/scripts/baloo-checks.sh
+      - uses: jdx/mise-action@v5
+        with:
+          install_args: github:bunderlog/hathi
+
+      - name: Run hathi's checks on the PR's commits
+        run: hathi check ci

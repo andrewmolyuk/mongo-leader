@@ -5,7 +5,7 @@ on:
     branches: [master]
 
 jobs:
-  # baloo's Git hook Checks, for commits pushed to master where its hooks didn't run
+  # The Git hook Checks, for commits pushed to master where the hooks didn't run (ADR git-hooks)
   git-hook-checks:
     permissions:
       contents: read
@@ -15,11 +15,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run baloo's checks on the pushed commits
-        env:
-          BASE: ${{ github.event.before }}
-          BRANCH: ${{ github.ref_name }}
-        run: sh .github/scripts/baloo-checks.sh
+      - uses: jdx/mise-action@v5
+        with:
+          install_args: github:bunderlog/hathi
+
+      - name: Run hathi's checks on the pushed commits
+        run: hathi check ci
 
   release:
     needs: git-hook-checks
