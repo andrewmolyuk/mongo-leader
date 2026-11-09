@@ -1,0 +1,8 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/bunderlog/hathi/main/schema.json
+#
+# hathi's settings for this repo (PRD project-setup in bunderlog/claude-plugins): the commit types
+# in full, so Claude reads the format here through CLAUDE.md; every other Check is on with its
+# defaults.
+
+conventional-commits:
+  types: [build, chore, ci, docs, feat, fix, perf, refactor, revert, style, test]

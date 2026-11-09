@@ -6,14 +6,14 @@
 # The Output style for Claude's replies, picked at session start in the settings file that
 # enables the plugin (the project's .claude/settings.local.json for the user's settings), where no
 # settings file of Claude Code's picks one; false picks none.
-output-style: short-replies
+output-style: false
 
 # The plugin's Status line, set at session start in .claude/settings.local.json, where no
 # settings file of Claude Code's but the user's own sets one; false takes it out. Instead of
 # true it also takes its bars, in the order shown, and the percentages at which each turns yellow
 # and red, such as { bars: [context, 5h], thresholds: { context: { yellow: 30, red: 50 } } };
 # cache's are of the cache's lifetime left, so red is below yellow.
-status-line: true
+status-line: false
 
 # The Session review: when a session ends, a separate Claude session proposes, in .about/proposals/,
 # changes to .about/ for what the conversation settled or left open but nobody wrote down; a
@@ -24,12 +24,6 @@ session-review: true
 # repo's root with the file's path at the end, and says nothing of how it went. Off without it, or
 # with false.
 # format-on-edit: npx prettier --write
-
-# The project's own commands, by Git hook (pre-commit, commit-msg, pre-push), that the plugin's Git
-# hook runs with sh after its Checks pass, with git's arguments as $1 and, for pre-push, the pushed
-# refs on stdin; the commit or push fails when the command does. Off without it, or with false.
-git-hook-commands:
-  pre-commit: mise run test
 
 # Guidelines, the plugin's working rules: each one on is named to Claude at session start, for
 # Claude to read when a task calls for it, but typescript, vue and testing, which Claude is given
@@ -61,11 +55,13 @@ claude-hooks:
 # where at least one of their Checks is on. conventional-commits also takes its settings instead
 # of true, such as { types: [feat, fix], max-length: 72 }; types: any takes any type,
 # max-length: 0 any length. no-large-files takes { max-size: 5000 }, in KB; 1024 without it.
+# All off: the committed Git hooks in .githooks/ run hathi, which has every one of them since
+# 1.2.0 (PRD project-setup in bunderlog/claude-plugins), so the plugin writes no Git hook.
 git-hooks:
-  conventional-commits: true
-  linear-history: true
-  no-ai-coauthor: true
-  no-conflict-markers: true
-  no-large-files: true
-  no-secrets-in-commits: true
-  no-stale-adr-date: true
+  conventional-commits: false
+  linear-history: false
+  no-ai-coauthor: false
+  no-conflict-markers: false
+  no-large-files: false
+  no-secrets-in-commits: false
+  no-stale-adr-date: false

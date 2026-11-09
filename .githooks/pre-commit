@@ -1,0 +1,3 @@
+#!/bin/sh
+hathi check pre-commit "$@" || exit
+exec mise run test

@@ -1,6 +1,6 @@
 [tools]
 node = "24"
-"github:bunderlog/hathi" = "1.0.0"
+"github:bunderlog/hathi" = "1.2.0"
 
 [tasks.install]
 description = "Install npm dependencies"

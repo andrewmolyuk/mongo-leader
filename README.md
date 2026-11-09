@@ -203,6 +203,10 @@ This project uses [semantic-release](https://github.com/semantic-release/semanti
 
 ### Commit Message Format
 
+The Git hooks in `.githooks/` check each commit's message and changes with `hathi`, which
+`mise.toml` pins, and run the tests before a commit; turn them on once per clone with
+`git config core.hooksPath .githooks`.
+
 To trigger releases, use [Conventional Commits](https://conventionalcommits.org/) format:
 
 - `feat:` - New features (minor version bump)
