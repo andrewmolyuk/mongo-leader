@@ -12,7 +12,8 @@
     }
   },
   "enabledPlugins": {
-    "baloo@bunderlog": true
+    "baloo@bunderlog": true,
+    "louie@bunderlog": true
   },
   "permissions": {
     "deny": [
