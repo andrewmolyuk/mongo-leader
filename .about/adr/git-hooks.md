@@ -1,6 +1,6 @@
 # The Git hooks in `.githooks/` run hathi, and CI runs the same hathi on every PR
 
-Date: 2026-11-09
+Date: 2026-11-10
 
 The Git hooks are the scripts in `.githooks/`: each runs `hathi check <hook>` first, from the
 version `mise.toml` pins, and `pre-commit` then runs `mise run test` (lint, build, typecheck,
@@ -17,8 +17,8 @@ it.
 
 - The baloo plugin's Git hooks in `.git/hooks`, running its Checks and `mise run test` through
   `git-hook-commands` (until 2026-11-09): untracked, so a clone ran none until its first Claude Code
-  session, and the Checks lived in two places, baloo's and hathi's. `.claude/baloo.yml` stays, with
-  its Git hook Checks, Output style and Status line off, until baloo works without a Config.
+  session, and the Checks lived in two places, baloo's and hathi's. `.claude/baloo.yml` went on
+  2026-11-10, once baloo read it no longer.
 - `.github/scripts/baloo-checks.sh` (until 2026-11-06): it downloaded a pinned baloo Release and ran
   each Check by hand over the PR's changes together, moving `HEAD` back to read them, and missed a
   Secret one commit adds and the next removes. hathi checks each commit on its own.
